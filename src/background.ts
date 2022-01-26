@@ -4,7 +4,7 @@
 * @version 0.1.0
 */
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, remote } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 /* import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
  */const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -99,3 +99,10 @@ if (isDevelopment) {
     })
   }
 }
+
+
+ipcMain.on('ping', event => {
+    console.log('pong')
+    // Send reply to a renderer
+    event.returnValue = 'pong'
+})

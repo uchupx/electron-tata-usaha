@@ -1,6 +1,6 @@
 // todo this file provides an API to interact with the db users 
 //todo table making it easier to work with
-import { User } from "../getdb"
+import { User } from "../../getdb"
 interface NewUser {
     firstName: string | null;
     lastName: string | null;
