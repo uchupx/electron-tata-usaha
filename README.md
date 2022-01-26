@@ -1,4 +1,4 @@
-## Vue 3 + Electron + Sqlite + Sequelize
+## Electron Tata Usaha (thanks to @soulsam480)
 
 POC for Electron app with Vue 3 frontend and persisted database with SQlite.
 
