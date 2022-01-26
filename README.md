@@ -1,4 +1,4 @@
-## Electron Tata Usaha (thanks to @soulsam480)
+## Electron Tata Usaha (thanks to [@soulsam480](https://github.com/soulsam480))
 
 POC for Electron app with Vue 3 frontend and persisted database with SQlite.
 
