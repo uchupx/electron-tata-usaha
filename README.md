@@ -85,7 +85,7 @@ Lean more about model Queries [here](https://sequelize.org/master/manual/model-q
 For errors try googling or contact me!
 
 ### References
-
+- [Elec-Sqlite-Vue](https://github.com/soulsam480/elec-sqlite-vue)
 - [Vue CLI Plugin Electron Builder Docs](https://nklayman.github.io/vue-cli-plugin-electron-builder/)
 - [Sequelize Docs](https://sequelize.org/master/)
 - [Electron Docs](https://www.electronjs.org/)
