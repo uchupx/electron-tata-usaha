@@ -50,7 +50,7 @@
                 <div class="w-full flex px-3 items-center border-b py-1">
                   <label class="w-1/5 mb-1 font-semibold text-gray-600">#{{history.id}}</label>
                   <label class="w-1/3 mb-1">{{history.payment_name}}</label>
-                  <label class="w-1/3 mb-1">Rp. {{history.price}}</label>
+                  <label class="w-1/3 mb-1">Rp. {{history.pay}}</label>
                   <label class="w-1/3 mb-1">{{history.description}}</label>
                   <!-- <label class="block mb-1"></label> -->
                 </div>

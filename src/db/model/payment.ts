@@ -7,11 +7,12 @@ export class Payment extends Model {
   public group!: string | null;
   public createdAt!: string | null;
   public updatedAt!: string | null;
+  public list!: [] | null;
   public id!: number | null
 }
 
 export class PaymentDetail extends Model {
-  public pay!: number | null;
+  public pay!: number;
   public description!: string | null;
   public studentId!: number | null;
   public paymentId!: number | null;

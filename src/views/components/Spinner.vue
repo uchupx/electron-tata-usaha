@@ -1,7 +1,18 @@
 <template>
-  <div class="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-5 w-5"></div>
+  <div class="loader ease-linear rounded-full border-2 border-t-2 border-gray-200" :class="classes"></div>
 </template>
 
+<script lang="ts">
+import { defineComponent } from "vue";
+export default defineComponent({
+  props: {
+    classes: {
+      type: String,
+      default: "h-5 w-5",
+    },
+  },
+});
+</script>
 <style scoped>
 .loader {
   border-top-color: #3498db;

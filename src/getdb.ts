@@ -13,11 +13,11 @@ const univDb = path.join(remote.app.getPath("userData"), "data.db")
 
 // todo the below is the path to local db under src/data.db
 /* const isBuild = process.env.NODE_ENV === 'production';
-const locDb = path.join(
-    // eslint-disable-next-line
-    isBuild ? __dirname : __static,
-    '../src/data.db',
-);
+// const locDb = path.join(
+//     // eslint-disable-next-line
+//     isBuild ? __dirname : __static,
+//     '../src/data.db',
+// );
  */
 // setup the connection to make sure it works
 const sequelize = new Sequelize({
@@ -128,6 +128,9 @@ Activity.init({
     entity: {
         type: DataTypes.STRING, allowNull: true
     },
+    type: {
+        type: DataTypes.STRING, allowNull: true
+    }
 }, { tableName: 'activities', sequelize })
 Activity.sync()
 

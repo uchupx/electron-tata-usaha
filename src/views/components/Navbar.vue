@@ -19,7 +19,7 @@ import Autocomplete from "@/views/components/Autocomplete.vue";
 export default defineComponent({
   data() {
     return {
-      students: Array<Student>(),
+      students: Array<any>(),
       payload: {
         name: "",
         classId: null,
@@ -39,7 +39,7 @@ export default defineComponent({
       for (const i in this.students) {
         students.push({
           id: this.students[i].id!,
-          name: this.students[i].name!,
+          name: this.students[i].className + '  ' + this.students[i].name!,
         });
       }
       return students;

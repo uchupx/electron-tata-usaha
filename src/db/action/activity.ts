@@ -8,6 +8,7 @@ interface NewActivity {
   payload: any | null;
   entityId: number | null;
   entity: string | null;
+  type: string | null;
   id?: number | null;
 }
 
@@ -77,14 +78,8 @@ const findPaginated = async (payload: ActivityPaginatedPayload) => {
 */
 const create = async (user: NewActivity) => {
   user.payload = JSON.stringify(user.payload)
-  const retData = await Activity.create(user)
-  const addedUser: NewActivity = {
-    payload: retData.payload,
-    entityId: retData.entityId,
-    entity: retData.entity,
-    id: retData.id,
-  }
-  return addedUser
+  await Activity.create(user)
+  return true
 }
 
 export { findPaginated, create }

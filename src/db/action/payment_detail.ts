@@ -5,12 +5,16 @@ import { DetailsPaginatedPayload } from "../enums/paginated"
 import { PaymentDetail as model } from "../model/payment"
 import { create as createActivity } from "@/db/action/activity"
 import { entityPaymentDetail } from "../enums/activity"
+import { entityCreate } from "../model/activity"
 
 interface NewDetail {
-  price: number | null;
+  pay: number;
   description: string | null;
   studentId: number | null;
   paymentId: number | null;
+  createdAt?: Date | null;
+  referId?: number | null;
+  isInstalment?: boolean | null;
   id?: number | null;
 }
 
@@ -21,7 +25,7 @@ interface DetailResult {
 
 
 
-const findByStudentIdPaginatedQuery = "SELECT payment_details.*, payments.name as payment_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id WHERE payment_details.student_id = {studentId} ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
+const findByStudentIdPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id WHERE payment_details.student_id = {studentId} ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
 const constByStudentIdPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM payment_details WHERE payment_details.student_id = {studentId}"
 /** 
  * Returns all Users
@@ -79,23 +83,28 @@ const findByStudentIdPaginated = async (id: number, payload: DetailsPaginatedPay
 /** 
  * Returns all Users
  * @method createUser
- * @param {NewDetail} user the user object
+ * @param {NewDetail} detail the user object
  * @returns {NewDetail} the created User Object
 */
-const create = async (user: NewDetail) => {
-  const retData = await PaymentDetail.create(user)
-  
+const create = async (detail: NewDetail) => {
+  detail.createdAt = new Date
+  const retData = await PaymentDetail.create(detail)
+
   await createActivity({
+    type: entityCreate,
     payload: retData,
     entityId: retData.id,
     entity: entityPaymentDetail,
   })
 
   const addedUser: NewDetail = {
-    price: retData.price,
+    pay: retData.pay,
     description: retData.description,
     studentId: retData.studentId,
     paymentId: retData.paymentId,
+    createdAt: new Date,
+    referId: retData.referId,
+    isInstalment: retData.isInstalment,
     id: retData.id,
   }
   return addedUser

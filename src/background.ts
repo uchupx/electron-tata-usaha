@@ -4,8 +4,13 @@
 * @version 0.1.0
 */
 
-import { app, protocol, BrowserWindow, ipcMain, remote } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, remote, dialog } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+import path from 'path'
+import fs from 'fs'
+declare const __static: string;
+// import img from './assets/download.jpeg';
+import { testHtml, templateKwitansi } from './template'
 /* import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
  */const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -82,6 +87,17 @@ app.on('ready', async () => {
      } */
 
   }
+
+  fs.copyFile(path.join(__static, "/images/download.jpeg"), path.join(app.getPath("userData"), "logo.jpeg"), function (err: any) {
+    if (err) {
+      console.log(path.join(__static, "/images/download.jpeg"));
+      console.log(path.join(app.getPath('exe'), "download.jpeg"));
+      console.log(err);
+    } else {
+      // fs.unlinkSync(htmlPath)
+      console.log('Successfully');
+    }
+  });
   createWindow()
 })
 
@@ -100,9 +116,79 @@ if (isDevelopment) {
   }
 }
 
+const options2 = {
+  marginsType: 1,
+  pageSize: 'A5',
+  printBackground: true,
+  printSelectionOnly: false,
+  landscape: true
+}
+ipcMain.on('print-pdf', async (event, payload) => {
+  const htmlPath = path.join(app.getPath("userData"), "test.html")
+  const filePath = path.join(app.getPath("userData"), "test.pdf")
+  const wind = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  });
+
+  await fs.writeFileSync(htmlPath, templateKwitansi);
+
+  wind.loadURL(`file://${htmlPath}`);
+  console.log(`file://${htmlPath}`)
+  console.log(templateKwitansi)
+  wind.webContents.on('did-finish-load', () => {
+    wind.webContents.printToPDF(options2).then(data => {
+      fs.writeFile(filePath, data, function (err: any) {
+        if (err) {
+          console.log(err);
+        } else {
+          fs.unlinkSync(htmlPath)
+          dialog.showSaveDialog({
+            title: "Select the File Path to save",
+            defaultPath: path.join(__dirname, "../assets/Contoh pembayaran.pdf"),
+            // defaultPath: path.join(__dirname, '../assets/'),
+            buttonLabel: "Save",
+            // Restricting the user to only Text Files.
+            filters: [
+              {
+                name: "Document",
+                extensions: ["pdf"],
+              },
+            ],
+            // properties: [],
+          }).then((file) => {
+            // Stating whether dialog operation was cancelled or not.
+            console.log(file.canceled);
+            if (!file.canceled) {
+              console.log(file.filePath!.toString());
+
+              // Creating and Writing to the sample.txt file
+              fs.copyFileSync(
+                filePath,
+                file.filePath!.toString()
+              );
+              fs.unlinkSync(filePath)
+            }
+          })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+    }).catch(error => {
+      console.log(error)
+    });
+  });
+  event.returnValue = true
+})
+
 
 ipcMain.on('ping', event => {
-    console.log('pong')
-    // Send reply to a renderer
-    event.returnValue = 'pong'
+  console.log('pong')
+  const win = BrowserWindow.getFocusedWindow()
+  dialog.showMessageBox(win!, { message: "test" })
+  // Send reply to a renderer
+  event.returnValue = 'pong'
 })
