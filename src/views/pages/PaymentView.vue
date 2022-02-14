@@ -42,7 +42,7 @@
           </template>
         </div>
         <div class="w-1/2 p-3 text-sm h-auto bg-white shadow-sm rounded-lg flex flex-col">
-          <label>Nama : {{student ? student.name : ''}}</label>
+          <label>Nama : {{student ? student.name : ''}} <span v-if="student.is_orphan" class="text-red-600">*</span></label>
           <label>Kelas : {{student ? student.className : ''}}</label>
           <label class="mb-0">SPP</label>
           <!-- <label>s/d bulan</label> -->
@@ -54,9 +54,13 @@
             </div>
           </template>
           <hr class="mb-1 mt-1">
+          <div class="flex" v-if="student.is_orphan">
+            <label class="w-full">Discount: </label>
+            <label>Rp.{{total}}</label>
+          </div>
           <div class="flex">
             <label class="w-full">Total: </label>
-            <label>Rp.{{total}}</label>
+            <label>Rp.{{total - total}}</label>
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@
             <label class="block mb-1">Nama</label>
           </div>
           <div class="w-2/3">
-            <label class="block mb-1">: {{student.name}}</label>
+            <label class="block mb-1">: {{student.name}} <span v-if="student.is_orphan" class="text-red-600">*</span></label>
           </div>
           <div class="w-1/3">
             <label class="block mb-1">Kelas</label>
