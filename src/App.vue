@@ -1,9 +1,9 @@
 <template>
   <div class="flex">
     <Sidebar/>
-    <div class="flex flex-col w-full">
-      <Navbar/>
-      <div class="bg-gray-100 p-3 h-full">
+    <div class="flex flex-col w-full flex-2 max-h-screen">
+      <Navbar class="flex1"/>
+      <div class="bg-gray-100 p-3 h-full overflow-y-auto">
         <router-view :key="$route.fullPath"/>
       </div>
     </div>
@@ -55,6 +55,13 @@ export default defineComponent({
 }
 .emulated-flex-gap > * {
   margin: 12px 0 0 12px;
+}
+.flex1 {
+  flex:1
+}
+
+.flex-2 {
+  flex: 2
 }
 
 .emulated-flex-gap {
