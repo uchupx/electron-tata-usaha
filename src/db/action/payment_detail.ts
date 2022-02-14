@@ -22,7 +22,8 @@ interface DetailResult {
   rows: Array<model>;
   count: number | 0;
 }
-
+const findPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name, students.name as student_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id JOIN students on payment_details.student_id=students.id ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
+const constPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM payment_details"
 
 
 const findByStudentIdPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id WHERE payment_details.student_id = {studentId} ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
@@ -80,6 +81,33 @@ const findByStudentIdPaginated = async (id: number, payload: DetailsPaginatedPay
 
   return result
 }
+
+
+
+
+const findPaginated = async (payload: DetailsPaginatedPayload) => {
+  const result: DetailResult = {
+    rows: [],
+    count: 0
+  }
+  let findQuery = findPaginatedQuery
+  const countQuery = constPaginatedQuery
+
+
+  findQuery = findQuery.replace('{offset}', payload.offset.toString())
+  findQuery = findQuery.replace('{limit}', payload.limit.toString())
+
+  await sequelize.query(countQuery).then(async (res: any) => {
+    if (res[0].length > 0) {
+      result.count = res[0][0].count
+      await sequelize.query(findQuery).then((res: any) => {
+        result.rows = res[0]
+      })
+    }
+  })
+
+  return result
+}
 /** 
  * Returns all Users
  * @method createUser
@@ -110,4 +138,4 @@ const create = async (detail: NewDetail) => {
   return addedUser
 }
 
-export { findAll, create, findByPaymentIdAndStudentId, findByStudentIdPaginated }
+export { findAll, create, findByPaymentIdAndStudentId, findByStudentIdPaginated, findPaginated }

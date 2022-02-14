@@ -10,6 +10,7 @@
     <template v-if="isModalOpen">
       <Modal/>
     </template>
+    <notifications />
   </div>
 </template>
 

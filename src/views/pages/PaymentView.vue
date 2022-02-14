@@ -108,6 +108,9 @@ import {
 import { Student } from "@/db/model/student";
 import { Payment } from "@/db/model/payment";
 import { ipcRenderer } from "electron";
+import { createToast } from 'mosha-vue-toastify';
+// import the styling for the toast
+import 'mosha-vue-toastify/dist/style.css'
 
 export default defineComponent({
   // setup() {
@@ -249,6 +252,10 @@ export default defineComponent({
         const form = this.forms[i];
         await create(form);
       }
+      createToast('Pembayaran Berhasil', {
+        hideProgressBar: true,
+        type: 'success'
+      })
       this.showModal = true;
       this.isSubmitLoading = false;
       // this.$router.push({ name: "pembayaran" });

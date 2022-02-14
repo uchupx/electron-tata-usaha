@@ -6,11 +6,10 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+
 import store from './stores/index'
 import { sequelize } from "./getdb"
 import './index.css'
-
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -19,5 +18,5 @@ sequelize.authenticate().then(() => console.log("connected")
 ).catch((err: any) => console.log(err))
 
 const app = createApp(App)
-app.use(router).use(store).mount('#app')
+app.use(store).use(router).mount('#app')
 

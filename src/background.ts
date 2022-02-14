@@ -147,7 +147,7 @@ ipcMain.on('print-pdf', async (event, payload) => {
           fs.unlinkSync(htmlPath)
           dialog.showSaveDialog({
             title: "Select the File Path to save",
-            defaultPath: path.join(__dirname, "../assets/Contoh pembayaran.pdf"),
+            defaultPath: path.join(app.getPath('documents'), "Contoh pembayaran.pdf"),
             // defaultPath: path.join(__dirname, '../assets/'),
             buttonLabel: "Save",
             // Restricting the user to only Text Files.
