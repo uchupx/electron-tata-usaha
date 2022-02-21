@@ -10,7 +10,7 @@ import path from 'path'
 import fs from 'fs'
 declare const __static: string;
 // import img from './assets/download.jpeg';
-import { testHtml, templateKwitansi } from './template'
+import { testHtml, templateKwitansi, templateKwitansiItems } from './template'
 /* import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
  */const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -133,18 +133,35 @@ ipcMain.on('print-pdf', async (event, payload) => {
     }
   });
 
-  await fs.writeFileSync(htmlPath, templateKwitansi);
+  let template = templateKwitansi
+  let itemsTemplate = ''
+
+  for (const idx in payload.payload.items) {
+    let itemsTemplateTmp = templateKwitansiItems
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{jenis}}', payload.payload.items[idx].jenis)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{harga}}', payload.payload.items[idx].harga)
+    itemsTemplate = itemsTemplate.concat(itemsTemplateTmp)
+  }
+
+  template = template.replace('{{tanggalDibuat}}', payload.payload.tanggalDibuat)
+  template = template.replace('{{nama}}', payload.payload.nama)
+  template = template.replace('{{kelas}}', payload.payload.kelas)
+  template = template.replace('{{tahun}}', payload.payload.tahun)
+  template = template.replace('{{items}}', itemsTemplate)
+  template = template.replace('{{total}}', payload.payload.total)
+
+  await fs.writeFileSync(htmlPath, template);
 
   wind.loadURL(`file://${htmlPath}`);
-  console.log(`file://${htmlPath}`)
-  console.log(templateKwitansi)
+
+
   wind.webContents.on('did-finish-load', () => {
     wind.webContents.printToPDF(options2).then(data => {
       fs.writeFile(filePath, data, function (err: any) {
         if (err) {
           console.log(err);
         } else {
-          fs.unlinkSync(htmlPath)
+          // fs.unlinkSync(htmlPath)
           dialog.showSaveDialog({
             title: "Select the File Path to save",
             defaultPath: path.join(app.getPath('documents'), "Contoh pembayaran.pdf"),

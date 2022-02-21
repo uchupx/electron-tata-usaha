@@ -7,21 +7,67 @@ import { create as createActivity } from "@/db/action/activity"
 import { entityStudent } from "../enums/activity"
 import { entityCreate, entityUpdate } from "../model/activity"
 
-const queryPaginated = "SELECT students.*, classes.name as className FROM students JOIN classes ON students.class_id=classes.id WHERE students.name LIKE '%{keyword}%' AND (classes.id = '{class}' OR 1 = {classOp}) LIMIT {limit} OFFSET {offset};"
-const countPaginated = "SELECT COUNT(students.id) as count FROM students JOIN classes ON students.class_id=classes.id WHERE students.name LIKE '%{keyword}%' AND (classes.id = '{class}' OR 1 = {classOp})"
+const queryPaginated = `
+    SELECT 
+        students.*, 
+        classes.name as className 
+    FROM 
+        student_class 
+    JOIN
+        students on student_class.student_id=students.id
+    JOIN 
+        classes ON student_class.class_id=classes.id 
+    WHERE 
+        students.name LIKE '%{keyword}%' 
+        AND (classes.id = '{class}' OR 1 = {classOp})
+        AND student_class.is_active = true
+    ORDER BY classes.id ASC, students.id ASC
+    LIMIT {limit} OFFSET {offset};
+`
+const countPaginated = `
+    SELECT 
+        COUNT(students.id) as count 
+    FROM 
+        student_class 
+    JOIN
+        students on student_class.student_id=students.id
+    JOIN 
+        classes ON student_class.class_id=classes.id 
+    WHERE 
+        students.name LIKE '%{keyword}%' 
+        AND (classes.id = '{class}' OR 1 = {classOp})
+        AND student_class.is_active = true
+    `
 
-const findByIdQuery = "SELECT students.*, classes.name as className FROM students JOIN classes ON students.class_id=classes.id WHERE students.id={studentId}"
-const findByNameAndClassIdQuery = `SELECT students.*, classes.name as className FROM students JOIN classes ON students.class_id=classes.id WHERE students.name="{name}" AND students.class_id ={classId}`
+const findByIdQuery = `
+    SELECT 
+        students.*
+    FROM 
+        students
+    WHERE 
+        students.id={studentId}`
+const findByNameAndClassIdQuery = `
+    SELECT 
+        students.*, 
+        classes.name as className 
+    FROM 
+        students 
+    JOIN 
+        student_class ON student_class.student_id=students.id 
+    JOIN 
+        classes ON student_class.class_id=classes.id 
+    WHERE 
+        students.name="{name}" 
+        AND student_class.class_id ={classId}
+    ORDER BY student_class.created_at ASC`
 
 interface NewStudent {
     name: string | null;
-    classId: number | null;
     address: string | null;
     semester: number | null;
     gender: string | null;
     createdAt?: Date | null;
     updatedAt?: Date | null;
-    academicYear: string | null;
     isOrphan: boolean | null;
     id?: number | null;
 }
@@ -148,19 +194,7 @@ const create = async (student: NewStudent) => {
         entityId: retData.id,
         entity: entityStudent,
     })
-
-    const addedUser: NewStudent = {
-        name: retData.name,
-        classId: retData.classId,
-        address: retData.address,
-        gender: retData.gender,
-        semester: retData.semester,
-        isOrphan: retData.isOrphan,
-        academicYear: retData.academicYear,
-        createdAt: new Date,
-        id: retData.id,
-    }
-    return addedUser
+    return retData.id
 }
 
 const update = async (student: Student) => {

@@ -18,6 +18,7 @@ export class PaymentDetail extends Model {
   public paymentId!: number | null;
   public createdAt!: string | null;
   public referId!: number | null;
+  public academicYearId!: number | null;
   public isInstalment!: boolean | null;
   public id!: number | null
 }

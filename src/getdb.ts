@@ -3,7 +3,7 @@ import path from 'path';
 import { Student } from '@/db/model/student'
 import { Payment, PaymentDetail } from '@/db/model/payment'
 import { Activity } from '@/db/model/activity'
-import { Class } from '@/db/model/class'
+import { Class, StudentClass, AcademicYear } from '@/db/model/class'
 import { DataTypes, Sequelize } from 'sequelize';
 declare const __static: string;
 
@@ -36,9 +36,6 @@ Student.init({
     name: {
         type: DataTypes.STRING, allowNull: true
     },
-    classId: {
-        type: DataTypes.NUMBER, allowNull: true
-    },
     address: {
         type: DataTypes.STRING, allowNull: true
     },
@@ -53,9 +50,6 @@ Student.init({
     },
     updatedAt: {
         type: DataTypes.DATE, allowNull: true
-    },
-    academicYear: {
-        type: DataTypes.STRING, allowNull: true
     },
     isOrphan: {
         type: DataTypes.BOOLEAN, allowNull: true
@@ -105,6 +99,9 @@ PaymentDetail.init({
     createdAt: {
         type: DataTypes.DATE, allowNull: true
     },
+    academicYearId: {
+        type: DataTypes.NUMBER, allowNull: true
+    },
     referId: {
         type: DataTypes.NUMBER, allowNull: true
     },
@@ -141,5 +138,33 @@ Class.init({
 }, { tableName: 'classes', sequelize })
 Class.sync()
 
+StudentClass.init({
+    studentId: {
+        type: DataTypes.NUMBER, allowNull: true
+    },
+    classId: {
+        type: DataTypes.NUMBER, allowNull: true
+    },
+    academicYearId: {
+        type: DataTypes.NUMBER, allowNull: true
+    },
+    createdAt: {
+        type: DataTypes.DATE, allowNull: true
+    },
+    isActive: {
+        type: DataTypes.BOOLEAN, allowNull: true
+    }
+}, { tableName: 'student_class', sequelize })
+StudentClass.sync()
 
-export { sequelize, Student, Payment, PaymentDetail, Activity, Class };
+AcademicYear.init({
+    label: {
+        type: DataTypes.STRING, allowNull: true
+    }
+}, { tableName: 'academic_years', sequelize })
+AcademicYear.sync()
+
+
+
+
+export { sequelize, Student, Payment, PaymentDetail, Activity, Class, StudentClass, AcademicYear };

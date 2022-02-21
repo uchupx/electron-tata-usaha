@@ -2,12 +2,14 @@
   <div>
     <label class="text-lg font-bold text-gray-700">Pembayaran</label>
     <div class="emulated-flex-gap">
-      <template v-for="item in payments" :key="'payment-menu' + item.id">
-        <router-link :to="{ name: 'view_pembayaran', params: { idName: item.data.key }}"  class=" w-40 h-16 bg-white shadow-sm flex items-center text-gray-700 font-bold rounded-lg list-menu p-2">
-          <span class="w-full">{{item.data.label}}</span>
-          <ChevronRightIcon class="h-5 w-5"/>
-        </router-link>
-      </template>
+      <router-link :to="{ name: 'view_pembayaran', params: { idName: 'spp' }}"  class=" w-40 h-16 bg-white shadow-sm flex items-center text-gray-700 font-bold rounded-lg list-menu p-2">
+        <span class="w-full">SPP</span>
+        <ChevronRightIcon class="h-5 w-5"/>
+      </router-link>
+      <router-link :to="{ name: 'view_pembayaran', params: { idName: 'lainnya' }}"  class=" w-40 h-16 bg-white shadow-sm flex items-center text-gray-700 font-bold rounded-lg list-menu p-2">
+        <span class="w-full">Pembayaran Lainnya</span>
+        <ChevronRightIcon class="h-5 w-5"/>
+      </router-link>
     </div>
   </div>
 </template>

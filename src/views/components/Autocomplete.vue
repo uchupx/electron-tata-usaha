@@ -1,11 +1,11 @@
 <template>
   <div class="relative w-full">
-    <div class="flex items-center justify-start` bg-gray-100 p-1 rounded-lg" :class="classCustom">
-      <div class="flex  p-0 rounded-full">
+    <div class="flex items-center justify-start bg-gray-100 p-1 rounded-lg" :class="classCustom">
+      <div class="flex w-full  p-0 rounded-full">
         <button class="flex items-center justify-center p-1 border-0 rounded-full">
           <SearchIcon class="h-5 w-5 text-gray-500"/>
         </button>
-        <input type="text" class=" hover:outline-none bg-transparent ml-2 focus-within:outline-none focus:outline-none input" v-model="keyword" @focus="isShow = true" @keyup="inputChange()" placeholder="Cari siswa...">
+        <input type="text" class=" hover:outline-none bg-transparent ml-2 focus-within:outline-none focus:outline-none input w-full" v-model="keyword" @focus="isShow = true" @keyup="inputChange()" placeholder="Cari siswa...">
         <!-- <input type="text" class="bg-gray-100 p-2  w-full rounded-lg hover:outline-none mb-2 focus-within:outline-none focus:outline-none input"> -->
       </div>
     </div>

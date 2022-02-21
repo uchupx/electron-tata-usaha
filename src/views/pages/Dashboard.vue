@@ -32,7 +32,7 @@
                       <label class="w-1/5 mb-1 font-semibold text-gray-600">#{{history.id}}</label>
                       <label class="w-1/2 mb-1">{{history.student_name}}</label>
                       <label class="w-1/3 mb-1">{{history.payment_name}}</label>
-                      <label class="w-1/3 mb-1">Rp. {{history.pay}}</label>
+                      <label class="w-1/3 mb-1">Rp. {{history.pay.toLocaleString()}}</label>
                       <label class="w-1/3 mb-1">{{history.description}}</label>
                       <!-- <label class="block mb-1"></label> -->
                     </div>

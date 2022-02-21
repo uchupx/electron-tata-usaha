@@ -1,4 +1,4 @@
-import { Class } from "@/getdb"
+import { Class, } from "@/getdb"
 
 interface NewClass {
   name: string | null;

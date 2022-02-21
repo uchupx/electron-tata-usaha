@@ -12,6 +12,7 @@ interface NewDetail {
   description: string | null;
   studentId: number | null;
   paymentId: number | null;
+  academicYearId: number | null;
   createdAt?: Date | null;
   referId?: number | null;
   isInstalment?: boolean | null;
@@ -28,6 +29,19 @@ const constPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM paym
 
 const findByStudentIdPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id WHERE payment_details.student_id = {studentId} ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
 const constByStudentIdPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM payment_details WHERE payment_details.student_id = {studentId}"
+
+const findByStudentIdQuery = `
+  SELECT 
+    payment_details.id as id_detail, 
+    payment_details.academic_year_id as academicYearId, 
+    payment_details.pay, payments.* 
+  FROM 
+    payment_details 
+  JOIN 
+    payments ON payments.id=payment_details.payment_id 
+  WHERE 
+    payment_details.student_id={studentId}
+`
 /** 
  * Returns all Users
  * @method getAllUsers
@@ -38,11 +52,11 @@ const findAll = async () => {
   return users
 }
 
-const findByPaymentIdAndStudentId = async (paymentId: number, studentId: number) => {
-  const details = await PaymentDetail.findOne({
+const findByStudentIdAndAcademicYear = async (studentId: number, academicYearId: number) => {
+  const details = await PaymentDetail.findAll({
     where: {
       studentId: studentId,
-      paymentId: paymentId,
+      academicYearId: academicYearId,
     },
     order: [['id', 'DESC']],
   })
@@ -81,9 +95,6 @@ const findByStudentIdPaginated = async (id: number, payload: DetailsPaginatedPay
 
   return result
 }
-
-
-
 
 const findPaginated = async (payload: DetailsPaginatedPayload) => {
   const result: DetailResult = {
@@ -125,17 +136,21 @@ const create = async (detail: NewDetail) => {
     entity: entityPaymentDetail,
   })
 
-  const addedUser: NewDetail = {
-    pay: retData.pay,
-    description: retData.description,
-    studentId: retData.studentId,
-    paymentId: retData.paymentId,
-    createdAt: new Date,
-    referId: retData.referId,
-    isInstalment: retData.isInstalment,
-    id: retData.id,
-  }
-  return addedUser
+  return retData.id
 }
 
-export { findAll, create, findByPaymentIdAndStudentId, findByStudentIdPaginated, findPaginated }
+const findByStudentId = async (id: number) => {
+  let result: any
+
+  let findQuery = findByStudentIdQuery
+
+  findQuery = findQuery.replace('{studentId}', id.toString())
+
+  await sequelize.query(findQuery).then((res: any) => {
+      result = res[0]
+  })
+
+  return result
+}
+
+export { findAll, create, findByStudentIdAndAcademicYear, findByStudentIdPaginated, findPaginated, findByStudentId}

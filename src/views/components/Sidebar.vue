@@ -1,5 +1,5 @@
 <template>
-  <div class=" flex1 overflow-y-auto max-h-screen">
+  <div class="overflow-y-auto max-h-screen">
     <div class="relative top-0 left-0 w-64 bg-white min-h-screen border-r">
       <div class="h-14 justify-center p-1 border-b flex items-center justify-center">
         <div>MTs Tarbiyatul Falah</div>
