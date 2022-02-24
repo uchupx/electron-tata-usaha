@@ -1,8 +1,8 @@
 {
   "name": "tata-usaha",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
-  "author": "soulsam480 <soulsam480@hotmail.com> ",
+  "author": "uchupx <yusufxx33@gmail.com> ",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

@@ -38,13 +38,23 @@ import { defineComponent, onMounted, reactive } from "vue";
 import { mapActions } from "vuex";
 import { UploadIcon, CheckCircleIcon } from "@heroicons/vue/outline";
 
-import { findByNameAndClassId, create, update } from "@/db/action/student";
+import {
+  findByNameAndClassId,
+  create,
+  update,
+  findById,
+} from "@/db/action/student";
 import { isClassExist, create as createClass } from "@/db/action/class";
 import {
   isExist as isAcademicYearExist,
   create as createAcademicYear,
 } from "@/db/action/academic_year";
-import { create as studentClassCreate, isExist as isDataExist, findByStudentId as findStudentClassByStudentId, update as studentClassUpdate} from "@/db/action/student_class";
+import {
+  create as studentClassCreate,
+  isExist as isDataExist,
+  findByStudentId as findStudentClassByStudentId,
+  update as studentClassUpdate,
+} from "@/db/action/student_class";
 
 import Spinner from "@/views/components/Spinner.vue";
 import XLSX from "xlsx";
@@ -80,13 +90,16 @@ export default defineComponent({
           const readerResult = reader.result as ArrayBuffer;
           const arrayUint = new Uint8Array(readerResult);
 
-          const xlsxWorkbooks = XLSX.read(arrayUint, {type: 'array', password: "1722"});
+          const xlsxWorkbooks = XLSX.read(arrayUint, {
+            type: "array",
+            password: "1722",
+          });
           const xlsxSheet = xlsxWorkbooks.Sheets["import_siswa"];
           const items = XLSX.utils.sheet_to_json(xlsxSheet) as any;
-          let count = 0
+          let count = 0;
           for (const i in items) {
             if (count > 10) {
-              break
+              break;
             }
             let classId: number;
             let academicYearId: number;
@@ -120,19 +133,40 @@ export default defineComponent({
             );
 
             if (studentIsExist) {
-              const student = studentIsExist;
+              let isHaveChange = false;
+              const student = await findById(studentIsExist.id);
+              console.log(student);
 
-              student.name = items[i].nama;
+              if (items[i].nama && student!.name !== items[i].nama) {
+                student!.name = items[i].nama;
+                isHaveChange = true;
+              }
               // student.classId = classId;
               // student.academicYearId = academicYearId;
-              student.address = items[i].alamat;
-              student.semester = items[i].semester;
-              student.gender = items[i].jenis_kelamin;
-              student.isOrphan = items[i].yatim_piatu;
+              if (items[i].alamat && student!.address !== items[i].alamat) {
+                student!.address = items[i].alamat;
+                isHaveChange = true;
+              }
+              if (items[i].semester && student!.semester !== items[i].semester) {
+                student!.semester = items[i].semester;
+                isHaveChange = true;
+              }
+              if (items[i].jenis_kelamin && student!.gender !== items[i].jenis_kelamin) {
+                student!.gender = items[i].jenis_kelamin;
+                isHaveChange = true;
+              }
+              if (items[i].yatim_piatu && student!.isOrphan !== items[i].yatim_piatu) {
+                student!.isOrphan = items[i].yatim_piatu;
+                isHaveChange = true;
+              }
 
-              await update(student);
+              console.log(isHaveChange);
 
-              studentId = student.id
+              if (isHaveChange) {
+                await update(student!);
+              }
+
+              studentId = student!.id as any;
             } else {
               const newStudentId = await create({
                 name: items[i].nama,
@@ -142,27 +176,33 @@ export default defineComponent({
                 isOrphan: items[i].yatim_piatu,
               });
 
-              studentId = newStudentId!
-              count++
+              studentId = newStudentId!;
+              count++;
             }
 
-            const isExist =  await isDataExist(classId, academicYearId, studentId)
+            const isExist = await isDataExist(
+              classId,
+              academicYearId,
+              studentId
+            );
             if (!isExist) {
-              const studentClasses = await findStudentClassByStudentId(studentId)
+              const studentClasses = await findStudentClassByStudentId(
+                studentId
+              );
 
               for (const idx in studentClasses) {
-                const studentClass = studentClasses[idx]
-                studentClass.isActive = false
-                await studentClassUpdate(studentClass)
+                const studentClass = studentClasses[idx];
+                studentClass.isActive = false;
+                await studentClassUpdate(studentClass);
               }
               await studentClassCreate({
                 classId: classId,
                 academicYearId: academicYearId,
                 studentId: studentId,
-                isActive: true
-              })
+                isActive: true,
+              });
             }
-            
+
             console.log("Bwah");
           }
           resolve(true);

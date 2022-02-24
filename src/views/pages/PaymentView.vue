@@ -33,7 +33,7 @@
               <select class="w-full list-kelas p-2 rounded-lg bg-gray-100 h-9 mb-2" v-model="monthFrom" :disabled="semester[selectedSemester].isPaidUntil > 5">
                 <option></option>
                 <template v-for="(month, idx) in months[selectedSemester]" :key="month">
-                  <option :value="idx">{{month}}</option>
+                  <option :value="idx" :disabled="idx < semester[selectedSemester].isPaidUntil">{{month}}</option>
                 </template>
               </select>
               </div>
@@ -60,10 +60,14 @@
                   <div class="w-1/2 flex" v-if="item.key !== 'spp'">
                     <label class="flex justify-start items-start">
                       <div class="bg-white border-2 rounded border-gray-400 w-6 h-6 flex flex-shrink-0 justify-center items-center mr-2 focus-within:border-blue-500">
-                        <input type="checkbox" class="opacity-0 absolute" @change="pushItem(item)" :disabled="isPaymentDisable(item)" :key="'item-key-' + item.id + '-' + academicYearId">
+                        <input type="checkbox" class="opacity-0 absolute" @change="pushItem(item)" :disabled="isPaymentDisable(item) == 0 " :key="'item-key-' + item.id + '-' + academicYearId">
                         <svg class="fill-current hidden w-4 h-4 text-green-500 pointer-events-none" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>
                       </div>
-                      <div class="select-none">{{item.label}} <span class="text-xs text-green-600 italic" v-if="isPaymentDisable(item)"> Sudah di bayar</span></div>
+                      <div class="select-none">{{item.label}} 
+                        <span class="text-xs text-green-600 italic" v-if="isPaymentDisable(item) == 0"> Sudah di bayar</span>
+                        <span class="text-xs text-yellow-400 italic" v-else-if="isPaymentDisable(item) != item.price">Sisa bayar Rp. {{isPaymentDisable(item).toLocaleString()}}</span>
+                        <!-- <span class="text-xs text-green-600 italic" v-else>-</span> -->
+                      </div>
                     </label>
                   </div>
                 </template>
@@ -97,7 +101,10 @@
             </div>
           </div>
         </div>
-      
+        <template v-if="!result || result.key != 'spp'">
+          <label class="mt-2  text-xs" :class="forms.length > 1 ? ' italic text-red-600' : ''">{{ forms.length > 1 ? "Tidak bisa mencicil jika memilih 2 jenis bayaran" : 'Isi jumlah yang di bayarkan, jika membayar dengan cara di cicil'}}</label>
+          <input type="number" class="rounded-lg border border-gray-400 p-2 text-right" :placeholder="'Rp. '+ total.toLocaleString()" :disabled="forms.length > 1" v-model="pay">
+        </template>
       <button type="button" @click="submit" :disabled="buttonDisable" :class="buttonDisable || isSubmitLoading? 'cursor-not-allowed opacity-50' : ''"  class="w-full bg-blue-600 p-2 mt-2 rounded-lg text-white flex justify-center">
         <template v-if="isSubmitLoading">
           <Spinner/>
@@ -185,6 +192,7 @@ export default defineComponent({
       isSubmitLoading: false,
       count: 0,
       total: 0,
+      pay: null,
       selectedSemester: 0,
       keyword: "",
       monthFrom: 0,
@@ -207,9 +215,9 @@ export default defineComponent({
       }
       this.createForms();
     },
-    academicYearId(val, oldVal) {
+    async academicYearId(val, oldVal) {
       if (this.student) {
-        this.selected(this.student.id);
+        await this.selected(this.student.id);
       }
 
       if (parseInt(val) === 0) {
@@ -218,17 +226,26 @@ export default defineComponent({
         this.filterGroup();
       }
 
-      if (this.idName.toString() != 'spp') {
-        this.forms = []
+      if (this.semester.length > 0) {
+        this.monthFrom = this.semester[this.selectedSemester].isPaidUntil;
+        this.monthUntil = this.semester[this.selectedSemester].isPaidUntil;
+      }
+
+
+      if (this.idName.toString() != "spp") {
+        this.forms = [];
       }
     },
     student() {
       this.createForms();
     },
-    semester() {
-      this.monthFrom = this.semester[this.selectedSemester].isPaidUntil;
-      this.monthUntil = this.semester[this.selectedSemester].isPaidUntil;
+    selectedSemester(val, oldVal) {
+      if (Number.isInteger(val)) {
+      this.monthFrom = this.semester[val].isPaidUntil;
+      this.monthUntil = this.semester[val].isPaidUntil;
+
       this.createForms();
+      }
     },
     monthUntil() {
       if (this.monthUntil > this.monthFrom) {
@@ -335,7 +352,6 @@ export default defineComponent({
 
           this.semester[idxSemester].isPaidUntil = isPaidUntil;
         }
-        console.log(this.semester);
         // this.monthFrom = value;
       }
     },
@@ -355,6 +371,14 @@ export default defineComponent({
       this.isSubmitLoading = true;
       for (const i in this.forms) {
         const form = this.forms[i];
+        if (this.forms.length === 1) {
+          form.isInstalment = this.pay
+            ? Number(this.pay) < Number(form.pay)
+            : false;
+          form.pay = this.pay ? Number(this.pay) : form.pay;
+        }
+
+        // console.log(form)
         await create(form);
       }
       createToast("Pembayaran Berhasil", {
@@ -374,52 +398,62 @@ export default defineComponent({
       return tmp.toUpperCase();
     },
     savePdf() {
-      const academicYearIdx = this.academicYears.findIndex(i => i.id === this.academicYearId)
-      const academicYear = this.academicYears[academicYearIdx]
-      const items: Array<ItemsPayload> = []
+      const academicYearIdx = this.academicYears.findIndex(
+        (i) => i.id === this.academicYearId
+      );
+      const academicYear = this.academicYears[academicYearIdx];
+      const items: Array<ItemsPayload> = [];
 
       for (const idx in this.forms) {
-        const payment = this.group.find(i => i.id === this.forms[idx].paymentId)!
-        const label = this.idName.toString() === 'spp' ? payment.label+ ' ' + this.forms[idx].description: payment.label
-        const price = payment.price!
+        const payment = this.group.find(
+          (i) => i.id === this.forms[idx].paymentId
+        )!;
+        const label =
+          this.idName.toString() === "spp"
+            ? payment.label + " " + this.forms[idx].description
+            : payment.label;
+        const price = payment.price!;
         items.push({
           jenis: label,
-          harga: price.toLocaleString()
-        })
+          harga: price.toLocaleString(),
+        });
       }
-      ipcRenderer.sendSync("print-pdf", { payload: {
-        tanggalDibuat: '01 Januari, 2021',
-        nama: this.student.name,
-        kelas: academicYear.className,
-        total: this.total.toLocaleString(),
-        tahun: academicYear.label,
-        items: items
-      } });
+      ipcRenderer.sendSync("print-pdf", {
+        payload: {
+          tanggalDibuat: "01 Januari, 2021",
+          nama: this.student.name,
+          kelas: academicYear.className,
+          total: this.total.toLocaleString(),
+          tahun: academicYear.label,
+          items: items,
+        },
+      });
       this.closeModal();
     },
     findPayment() {
       return findByName(this.idName.toString()).then((response) => {
         this.result = response;
-        return findGroup(this.result.key).then((res: any) => {
+        return findGroup(this.idName.toString()).then((res: any) => {
           this.group = res;
         });
       });
     },
     pushItem(item: Payment) {
       this.total = 0;
+      const pay = this.isPaymentDisable(item);
       const idx = this.forms.findIndex((i) => i.paymentId === item.id);
       if (idx > -1) {
         const tmp = this.forms.filter((i) => i.paymentId != item.id);
         this.forms = tmp;
       } else {
         this.forms.push({
-          pay: Number(item.price),
+          pay: pay,
           description: "Bayar " + item.label,
           studentId: this.student.id,
           paymentId: item.id,
           academicYearId: this.academicYearId,
-          // referId: "",
-          // isInstalment: "",
+          referId: null,
+          isInstalment: false,
         });
       }
 
@@ -433,7 +467,6 @@ export default defineComponent({
     },
     async fetchAcademicYear() {
       this.academicYears = await findAcademicYearByStudentId(this.student.id);
-      console.log(this.academicYears);
     },
     findLabel(id: number) {
       const idx = this.group.findIndex((i) => i.id! === id);
@@ -468,15 +501,21 @@ export default defineComponent({
       this.filteredGroup = filteredGroup;
     },
     isPaymentDisable(item: Payment) {
-      let result = false
+      let remainPaid = item.price!;
+      let totalPaid = 0;
       for (const idx in this.details) {
         const detail = this.details[idx];
         if (item.id == detail.paymentId) {
-          result = true
-          break
+          totalPaid = totalPaid + detail.pay;
+          if (totalPaid >= item.price!) {
+            remainPaid = 0;
+            break;
+          } else {
+            remainPaid = item.price! - totalPaid;
+          }
         }
       }
-      return result
+      return remainPaid;
     },
   },
   async mounted() {

@@ -44,16 +44,19 @@
                 <div class="w-full flex border-b px-3 py-1 bg-white text-gray-600 font-bold rounded-t-lg text-xs">
                   <label class="w-1/4 mb-1">Jenis</label>
                   <label class="w-1/3 mb-1 text-center">Status</label>
-                  <label class="w-1/3 mb-1">Sisa Bayar</label>
+                  <label class="w-1/3 mb-1">Jumlah Bayaran</label>
+                  <label class="w-1/3 mb-1">Sisa Bayaran</label>
                   <label class="w-1/3 mb-1 text-center">Deskripsi</label>
                 </div>
                 <template v-for="paymentItem in payments" :key="paymentItem.label + '-' + item.className">
                   <template v-if="isPaymentShow(paymentItem, item)">
                   <div class="w-full flex border-b px-3 py-1 bg-white text-gray-600 rounded-t-lg text-xs">
                     <label class="w-1/4  mb-1 font-bold">{{paymentItem.label}}</label>
-                    <label class="w-1/3 text-center mb-1 " :class="statusLunas(paymentItem, item) === 'Lunas' ? 'text-green-500' : 'text-red-500'">{{statusLunas(paymentItem, item)}}</label>
-                    <label class="w-1/3 mb-1">Rp. {{paymentItem.price.toLocaleString()}}</label>
-                    <label class="w-1/3 text-center mb-1">-</label>
+                    <label class="w-1/3 text-center mb-1 " v-if="paymentItem.key === 'spp'" :class="statusSpp(paymentItem, item) === 'Terbayarkan' ? 'text-green-500' : 'text-red-500'">{{statusSpp(paymentItem, item)}}</label>
+                    <label class="w-1/3 text-center mb-1 " v-else :class="statusLunas(paymentItem, item) === 'Lunas' ? 'text-green-500' : 'text-red-500'">{{statusLunas(paymentItem, item)}}</label>
+                    <label class="w-1/3 mb-1">Rp. {{paymentItem.key === 'spp' ? '-' : totalPay(paymentItem, item).toLocaleString()}}</label>
+                    <label class="w-1/3 mb-1">Rp. {{paymentItem.key === 'spp' ? '-' : (paymentItem.price - totalPay(paymentItem, item)).toLocaleString()}}</label>
+                    <label class="w-1/3 text-center mb-1">{{paymentItem.key === 'spp' ? sppDescription(paymentItem, item) : '-'}}</label>
                   </div>
                   </template>
                 </template>
@@ -79,7 +82,8 @@
                 <div class="w-full flex px-3 items-center border-b py-1 text-xs">
                   <label class="w-1/3 mb-1 font-bold">{{history.payment_name}}</label>
                   <label class="w-1/3 mb-1">Rp. {{history.pay.toLocaleString()}}</label>
-                  <label class="w-1/3 mb-1">{{history.created_at}}</label>
+                  <label class="w-1/3 mb-1">{{history.description}}</label>
+                  <label class="w-1/3 mb-1">{{dateToHumanize(history.created_at)}}</label>
                   <!-- <label class="block mb-1"></label> -->
                 </div>
               </template>
@@ -109,6 +113,8 @@ import {
 import { UserCircleIcon } from "@heroicons/vue/solid";
 import { Payment, PaymentDetail } from "@/db/model/payment";
 import PaginationButton from "@/views/components/PaginationButton.vue";
+import { paymentWithClasses} from "@/helper/index"
+import moment from "moment"
 
 export default defineComponent({
   data() {
@@ -162,14 +168,7 @@ export default defineComponent({
       return this.findHistory();
     },
     isPaymentShow(payment: Payment, item: any) {
-      const paymenWithtClasses = [
-        { classGrade: "7-", payments: ["ppdb", "spp", "pas", "pat", "lks"] },
-        { classGrade: "8-", payments: ["du", "spp", "pas", "pat", "lks"] },
-        {
-          classGrade: "9-",
-          payments: ["du", "spp", "pas", "pat", "uam", "lks"],
-        },
-      ];
+      const paymenWithtClasses = paymentWithClasses;
 
       const className = item.className;
       const academicYear = item.academicYear;
@@ -184,16 +183,23 @@ export default defineComponent({
 
       return paymenWithClass.includes(payment.key!);
     },
-    statusLunas(payment: Payment, item: any) {
+    totalPay(payment: Payment, item: any) {
       let detail: any
+      let totalPay = 0
 
       for(const idx in this.details) {
         if (this.details[idx].id === payment.id && this.details[idx].academicYearId === item.academicYearId) {
           detail = this.details[idx]
+          totalPay = totalPay + detail.pay
         }
       }
 
-      return detail ? 'Lunas' : 'Belum Lunas'
+      return totalPay
+    },
+    statusLunas(payment: Payment, item: any) {
+      const totalPay = this.totalPay(payment, item)
+
+      return totalPay === payment.price ? 'Lunas' : 'Belum Lunas'
     },
     statusSpp(payment: Payment, item: any) {
       let detail: any
@@ -204,11 +210,29 @@ export default defineComponent({
         }
       }
 
-      return detail ? 'Lunas' : 'Belum Lunas'
+      return detail ? 'Terbayarkan' : 'Belum Lunas'
+    },
+    sppDescription(payment: Payment, item: any) {
+      let detail: any
+
+      for(const idx in this.details) {
+        if (this.details[idx].id === payment.id && this.details[idx].academicYearId === item.academicYearId) {
+          detail = this.details[idx]
+        }
+      }
+
+      if (detail) {
+        return detail.description
+      } else {
+        return '-'
+      }
     },
     async fetchPaymentDetails() {
       this.details = await findPaymentDetails(this.student.id);
     },
+    dateToHumanize(date: string) {
+      return moment(date).format("DD MMMM YYYY")
+    }
   },
   mounted() {
     this.studentId = this.$route.params.id as any;

@@ -19,8 +19,14 @@
         </div>
         <div class="flex items-center text-gray-600 item hover:bg-gray-100 cursor-not-allowed">
           <CloudUploadIcon class="mx-2 h-5 w-5 inline-block" />
-          <div class="mx-2 py-1 w-full">
+          <div class="mx-2 py-1 w-full border-b">
             <label class="text-sm">Cadangkan Data - Disabled</label>
+          </div>
+        </div>
+        <div class="flex items-center text-gray-600 item hover:bg-gray-100 cursor-not-allowed">
+          <TrashIcon class="mx-2 h-5 w-5 inline-block" />
+          <div class="mx-2 py-1 w-full">
+            <label class="text-sm">Hapus Semua Data - Disabled</label>
           </div>
         </div>
       </div>
@@ -35,6 +41,7 @@ import {
   ClockIcon,
   CloudUploadIcon,
   CloudDownloadIcon,
+  TrashIcon
 } from "@heroicons/vue/solid";
 import { mapActions } from "vuex";
 import ImportModal from '@/views/components/ImportModal.vue'
@@ -45,6 +52,7 @@ export default defineComponent({
     ClockIcon,
     CloudDownloadIcon,
     CloudUploadIcon,
+    TrashIcon,
     // eslint-disable-next-line
     ImportModal
   },

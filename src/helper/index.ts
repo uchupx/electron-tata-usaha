@@ -9,11 +9,11 @@ const semesterByIdx = [{
 }]
 
 const paymentWithClasses = [
-  { classGrade: "7-", payments: ["ppdb", "spp", "pas", "pat", "lks"] },
-  { classGrade: "8-", payments: ["du", "spp", "pas", "pat", "lks"] },
+  { classGrade: "7-", payments: ["ppdb", "spp", "pas", "pat", "lks", "pph1", "pph2"] },
+  { classGrade: "8-", payments: ["du", "spp", "pas", "pat", "lks", "pph1", "pph2"] },
   {
     classGrade: "9-",
-    payments: ["du", "spp", "pas", "pat", "uam", "lks"],
+    payments: ["du", "spp", "pas", "pat", "uam", "lks", "pph1", "pph2"],
   },
 ];
 

@@ -86,15 +86,10 @@ const getAll = async () => {
 }
 
 const findById = async (id: number) => {
-    let result: any
 
-    let findQuery = findByIdQuery
-
-    findQuery = findQuery.replace('{studentId}', id.toString())
-
-    await sequelize.query(findQuery).then((res: any) => {
-        result = res[0][0]
-    })
+    const result = await Student.findOne({where: {
+        Id: id.toString()
+    }})
 
     return result
 }

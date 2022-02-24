@@ -33,6 +33,7 @@ const constByStudentIdPaginatedQuery = "SELECT COUNT(payment_details.id) as coun
 const findByStudentIdQuery = `
   SELECT 
     payment_details.id as id_detail, 
+    payment_details.description, 
     payment_details.academic_year_id as academicYearId, 
     payment_details.pay, payments.* 
   FROM 
