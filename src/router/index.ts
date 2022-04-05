@@ -1,14 +1,17 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
+// import Home from '../views/Home.vue'
+// import Payment from '@/views/pages/Payment.vue'
+
 import Dashboard from '@/views/pages/Dashboard.vue'
 import Setting from '@/views/pages/Setting.vue'
 import Student from '@/views/pages/Student.vue'
 import Import from '@/views/pages/Import.vue'
 import StudentView from '@/views/pages/StudentView.vue'
-import Payment from '@/views/pages/Payment.vue'
+import StudentCreate from '@/views/pages/StudentCreate.vue'
 import PaymentView from '@/views/pages/PaymentView.vue'
 import Activity from '@/views/pages/Activity.vue'
-import { CogIcon, HomeIcon, UsersIcon, CashIcon, UploadIcon } from '@heroicons/vue/outline'
+import Report from '@/views/pages/Report.vue'
+import { CogIcon, HomeIcon, UsersIcon, CashIcon, UploadIcon, DocumentReportIcon } from '@heroicons/vue/outline'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -30,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
       visible: true,
       label: 'Pembayaran',
     },
-    component: Payment
+    component: PaymentView
   },
   {
     path: '/payment/:idName',
@@ -63,6 +66,16 @@ const routes: Array<RouteRecordRaw> = [
     component: StudentView
   },
   {
+    path: '/siswa/create',
+    name: 'create_siswa',
+    meta: {
+      icon: UsersIcon,
+      visible: false,
+      label: 'create_siswa',
+    },
+    component: StudentCreate
+  },
+  {
     path: '/import',
     name: 'import',
     meta: {
@@ -71,6 +84,16 @@ const routes: Array<RouteRecordRaw> = [
       label: 'Import',
     },
     component: Import
+  },
+  {
+    path: '/reports',
+    name: 'report',
+    meta: {
+      icon: DocumentReportIcon,
+      visible: true,
+      label: 'Laporan',
+    },
+    component: Report
   },
   {
     path: '/setting',
@@ -92,6 +115,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     component: Activity
   },
+
 ]
 
 const router = createRouter({

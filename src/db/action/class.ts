@@ -1,4 +1,5 @@
 import { Class, } from "@/getdb"
+import { Op } from "sequelize";
 
 interface NewClass {
   name: string | null;
@@ -9,6 +10,18 @@ const findAll = async () => {
   const result = await Class.findAll()
 
   return result
+}
+
+const findByIds = async (ids: Array<number>) => {
+  const results = await Class.findAll({
+    where: {
+      id: {
+        [Op.in]: ids
+      }
+    }
+  })
+
+  return results
 }
 
 const isClassExist = async (name: string) => {
@@ -26,4 +39,11 @@ const create = async (data: NewClass) => {
   return retData.id
 }
 
-export { findAll, create, isClassExist }
+const update = async (data: Class) => {
+  await data.save()
+
+  return data.id
+}
+
+
+export { findAll, create, isClassExist, findByIds, update }

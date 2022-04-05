@@ -1,5 +1,6 @@
 // todo this file provides an API to interact with the db users 
 //todo table making it easier to work with
+import { Op } from "sequelize";
 import { Payment } from "../../getdb"
 interface NewPayment {
   key: string | null;
@@ -8,16 +9,30 @@ interface NewPayment {
   group: string | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
+  isActive: boolean | null;
   id?: number | null;
 }
+
 /** 
- * Returns all Users
- * @method getAllUsers
- * @returns {Array<NewPayment>} All Users belonging to User Model 
+ * Return model Payment
+ * @param {string} name
+ * @method findByName
+ * @returns {Payment}
 */
 const findByName = async (name: string) => {
-  const users = await Payment.findOne({ where: { key: name } })
-  return users
+  const payment = await Payment.findOne({ where: { key: name } })
+  return payment
+}
+
+/**
+ * Return model Payment
+ * @param {number} id
+ * @method findById
+ * @returns {Payment}
+ */
+const findById = async (id: number) => {
+  const payment = await Payment.findOne({ where: { id: id } })
+  return payment
 }
 
 const findAll = async () => {
@@ -25,29 +40,47 @@ const findAll = async () => {
   return items
 }
 
+/**
+ * Return model Array<Payment>
+ * @param {Array<number>} ids
+ * @method findByIds
+ * @returns {Array<Payment>}
+ */
+const findByIds = async (ids: Array<number>) => {
+  const result = await Payment.findAll({ where: { Id: { [Op.in]: ids } } })
 
-const findGroup = async (group: string) =>  {
-  const items = await Payment.findAll({where: { group: group }})
+  return result
+}
+
+const findGroup = async (group: string) => {
+  const items = await Payment.findAll({ where: { group: group } })
   return items
 }
 /** 
  * Returns all Users
  * @method create
- * @param {NewPayment} paymeny the user object
- * @returns {NewPayment} the created User Object
+ * @param {NewPayment} paymeny the payment object
+ * @returns {number} the id of created Object
 */
 const create = async (paymeny: NewPayment) => {
-  paymeny.createdAt = new Date
-  const retData = await Payment.create(paymeny)
-  const addedUser: NewPayment = {
-    key: retData.key,
-    label: retData.label,
-    price: retData.price,
-    group: retData.group,
-    createdAt: new Date,
-    id: retData.id,
+  if (!paymeny.createdAt) {
+    paymeny.createdAt = new Date
   }
+  
+  const retData = await Payment.create(paymeny)
+
   return retData.id
 }
 
-export { findByName, create, findAll, findGroup }
+/**
+ * @method update
+ * @param {Payment} payment 
+ * @returns {number}
+ */
+const update = async (payment: Payment) => {
+  await payment.save()
+
+  return payment.id
+}
+
+export { findByName, create, findAll, findGroup, findById, update, findByIds }

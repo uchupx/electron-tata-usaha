@@ -1,11 +1,11 @@
 import { StudentClass, sequelize} from "@/getdb"
 
-interface NewClass {
+export interface NewClass {
   studentId: number | null;
   classId: number | null;
   academicYearId: number | null;
   createdAt?: Date | null;
-  isActive: boolean | null;
+  isActive: boolean | false;
   id?: number | null;
 }
 const findByStudentIdQuery = `
@@ -62,6 +62,16 @@ const isExist = async (classId: number, academicYearId: number, studentId: numbe
 //   return result?.id
 // }
 
+const findByModelStudentId = async (studentId: number) => {
+  const results = await StudentClass.findAll({
+    where: {
+      studentId: studentId
+    }
+  })
+
+  return results
+}
+
 const create = async (data: NewClass) => {
   data.createdAt = new Date
   const retData = await StudentClass.create(data)
@@ -73,4 +83,10 @@ const update = async (data: StudentClass) => {
   return data.id
 }
 
-export { findByStudentId, isExist ,create, update }
+const findAll = async () => {
+  const result = await StudentClass.findAll()
+
+  return result
+}
+
+export { findByStudentId, isExist ,create, update, findByModelStudentId, findAll }

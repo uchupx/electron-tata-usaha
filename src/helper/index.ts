@@ -16,7 +16,7 @@ const paymentWithClasses = [
     payments: ["du", "spp", "pas", "pat", "uam", "lks", "pph1", "pph2"],
   },
 ];
-
+const paymentKeys = ["ppdb", "spp", "pas", "pat", "lks", "pph1", "pph2", "du", "uam"]
 const monthsBySemester = [
   ["Juli", "Augustus", "September", "Oktober", "November", "Desember"],
   ["Januari", "Februari", "Maret", "April", "Mei", "Juni"],
@@ -37,4 +37,4 @@ const findSemester = (month: string) => {
   return null
 }
 
-export { semesterByIdx, paymentWithClasses, monthsBySemester, findSemester }
+export { semesterByIdx, paymentWithClasses, monthsBySemester, findSemester, paymentKeys }

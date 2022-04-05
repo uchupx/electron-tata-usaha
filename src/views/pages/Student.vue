@@ -5,13 +5,16 @@
       <div class="">
         <!-- <label>List Kelas</label> -->
         <div class="flex">
-          <select class="w-1/3 list-kelas p-2 rounded-lg bg-gray-100 h-9" v-model="payload.classId" @change="changePage(1)">
+          <select class="w-1/3 list-kelas p-2 rounded-lg bg-gray-100 h-9 border-gray-700 border" v-model="payload.classId" @change="changePage(1)">
             <option value=""></option>
             <template v-for="c in classes" :key="c.name">
               <option :value="c.id">{{c.name}}</option>
             </template>
           </select>
-          <input type="text" class="bg-gray-100 p-2 h-9 w-full rounded-lg hover:outline-none ml-2 focus-within:outline-none focus:outline-none input" v-model="keyword" @keyup="changePage(1)" placeholder="Cari siswa...">
+          <input type="text" class="bg-gray-100 border border-gray-300 p-2 h-9 w-full rounded-lg hover:outline-none ml-2 focus-within:outline-none focus:outline-none input" v-model="keyword" @keyup="changePage(1)" placeholder="Cari siswa...">
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="p-2 bg-blue-500 text-white hover:bg-blue-600 rounded-md" @click="routeToCreateSiswa()">Tambah Siswa </button>
         </div>
       </div>
     </div>
@@ -53,7 +56,7 @@
                 <label class="mb-0">{{ student.className }}</label>
               </div>
               <div class="w-1/5 text-right">
-                <button type="button" class="bg-blue-500 p-2 rounded-lg" @click="viewStudent(student)">
+                <button type="button" class="bg-green-500 p-2 rounded-lg" @click="viewStudent(student)">
                   <EyeIcon class="h-5 w-5 text-white" />
                 </button>
               </div>
@@ -74,8 +77,7 @@ import { EyeIcon } from "@heroicons/vue/solid";
 import PaginationButton from "@/views/components/PaginationButton.vue";
 import Spinner from "@/views/components/Spinner.vue";
 import { Class } from "@/db/model/class";
-// import {vueOp} from '@/db/enums/types'
-// import { } from '@types/'
+
 export default defineComponent({
   data() {
     return {
@@ -84,10 +86,10 @@ export default defineComponent({
       classes: Array<Class>(),
       currentPage: 1,
       isLoading: false,
-      keyword: '',
+      keyword: "",
       payload: {
-        name: '',
-        classId: '',
+        name: "",
+        classId: "",
         limit: 10,
         offset: 0,
       },
@@ -111,9 +113,9 @@ export default defineComponent({
         });
     },
     changePage(page = 1) {
-      this.payload.name = ''
-      if (this.keyword.trim() !== '') {
-        this.payload.name = this.keyword
+      this.payload.name = "";
+      if (this.keyword.trim() !== "") {
+        this.payload.name = this.keyword;
       }
       this.currentPage = page;
       // if (page !== 1 ) {
@@ -121,13 +123,21 @@ export default defineComponent({
       // }
       return this.find();
     },
-    viewStudent (student: Student) {
-      this.$router.push({name: 'view_siswa', params:{id: student.id as any}})
-    }
+    routeToCreateSiswa() {
+      this.$router.push({
+        name: "create_siswa",
+      });
+    },
+    viewStudent(student: Student) {
+      this.$router.push({
+        name: "view_siswa",
+        params: { id: student.id as any },
+      });
+    },
   },
   async mounted() {
     this.find();
-    this.classes = await findAll()
+    this.classes = await findAll();
   },
 });
 </script>

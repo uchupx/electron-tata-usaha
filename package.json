@@ -1,6 +1,6 @@
 {
   "name": "tata-usaha",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "private": true,
   "author": "uchupx <yusufxx33@gmail.com> ",
   "scripts": {
@@ -16,7 +16,9 @@
   "dependencies": {
     "@heroicons/vue": "^1.0.5",
     "@kyvg/vue3-notification": "^2.3.4",
+    "@vuepic/vue-datepicker": "^3.0.0",
     "autoprefixer": "^9",
+    "axios": "^0.26.1",
     "bootstrap": "^4.5.2",
     "core-js": "^3.6.5",
     "moment": "^2.29.1",
@@ -29,6 +31,7 @@
     "vue-html2pdf": "^1.8.0",
     "vue-router": "^4.0.0-0",
     "vue-toastification": "^2.0.0-rc.5",
+    "vue3-datepicker": "^0.3.2",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.5"
   },

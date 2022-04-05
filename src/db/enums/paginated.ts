@@ -9,6 +9,9 @@ export class StudentPaginatedPayload
 
 export class DetailsPaginatedPayload
 {
+    public createdStart?: string | null;
+    public createdEnd?: string | null;
+    public studentId?: number;
     public limit!: number;
     public offset!: number;
 }

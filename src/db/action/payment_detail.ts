@@ -23,9 +23,20 @@ interface DetailResult {
   rows: Array<model>;
   count: number | 0;
 }
-const findPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name, students.name as student_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id JOIN students on payment_details.student_id=students.id ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
-const constPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM payment_details"
-
+const findPaginatedQuery = `
+  SELECT
+    payment_details.*, 
+    payments.label as payment_name,
+    students.name as student_name 
+  FROM 
+    payment_details 
+  JOIN 
+    payments on payment_details.payment_id=payments.id 
+  JOIN 
+    students on payment_details.student_id=students.id 
+  ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}`
+const constPaginatedQuery = `
+SELECT COUNT(payment_details.id) as count FROM payment_details`
 
 const findByStudentIdPaginatedQuery = "SELECT payment_details.*, payments.label as payment_name FROM payment_details JOIN payments on payment_details.payment_id=payments.id WHERE payment_details.student_id = {studentId} ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}"
 const constByStudentIdPaginatedQuery = "SELECT COUNT(payment_details.id) as count FROM payment_details WHERE payment_details.student_id = {studentId}"
@@ -43,6 +54,27 @@ const findByStudentIdQuery = `
   WHERE 
     payment_details.student_id={studentId}
 `
+
+const findPaginatedRawQuery = `
+  SELECT
+    payment_details.* 
+  FROM 
+    payment_details 
+  WHERE
+    (payment_details.student_id="{studentId}" OR 1 = {findStudent})
+    AND (payment_details.created_at BETWEEN "{createdStart}" AND "{createdEnd}" OR 1 = {findCreated})
+  ORDER BY payment_details.id DESC LIMIT {limit} OFFSET {offset}`
+
+const countPaginatedRawQuery = `
+  SELECT
+    COUNT(payment_details.id) as count
+  FROM 
+    payment_details 
+  WHERE
+    (payment_details.student_id="{studentId}" OR 1 = {findStudent})
+    AND (payment_details.created_at BETWEEN "{createdStart}" AND "{createdEnd}" OR 1 = {findCreated})
+`
+
 /** 
  * Returns all Users
  * @method getAllUsers
@@ -63,7 +95,6 @@ const findByStudentIdAndAcademicYear = async (studentId: number, academicYearId:
   })
   return details
 }
-
 
 /** 
  * Returns all Students
@@ -120,6 +151,64 @@ const findPaginated = async (payload: DetailsPaginatedPayload) => {
 
   return result
 }
+
+
+const findRawPaginated = async (payload: DetailsPaginatedPayload) => {
+  const result: DetailResult = {
+    rows: [],
+    count: 0
+  }
+  
+  let findQuery = findPaginatedRawQuery
+  let countQuery = countPaginatedRawQuery
+
+  findQuery = findQuery.replace('{offset}', payload.offset.toString())
+  findQuery = findQuery.replace('{limit}', payload.limit.toString())
+
+  if (payload.createdStart && payload.createdEnd) {
+    findQuery = findQuery.replace('{createdStart}', payload.createdStart)
+    findQuery = findQuery.replace('{createdEnd}',  payload.createdEnd)
+    findQuery = findQuery.replace('{findCreated}', '0')
+
+    countQuery = countQuery.replace('{createdStart}', payload.createdStart)
+    countQuery = countQuery.replace('{createdEnd}', payload.createdEnd)
+    countQuery = countQuery.replace('{findCreated}', '0')
+  } else {
+    findQuery = findQuery.replace('{createdStart}', '')
+    findQuery = findQuery.replace('{createdEnd}', '')
+    findQuery = findQuery.replace('{findCreated}', '1')
+    
+    countQuery = countQuery.replace('{createdStart}', '')
+    countQuery = countQuery.replace('{createdEnd}', '')
+    countQuery = countQuery.replace('{findCreated}', '1')
+  }
+
+  if (payload.studentId) {
+    findQuery = findQuery.replace('{studentId}', payload.studentId.toString())
+    findQuery = findQuery.replace('{findStudent}', '0')
+
+    countQuery = countQuery.replace('{studentId}', payload.studentId.toString())
+    countQuery = countQuery.replace('{findStudent}', '0')
+  } else {
+    findQuery = findQuery.replace('{studentId}', '')
+    findQuery = findQuery.replace('{findStudent}', '1')
+    
+    countQuery = countQuery.replace('{studentId}', '')
+    countQuery = countQuery.replace('{findStudent}', '1')
+  }
+
+  await sequelize.query(countQuery).then(async (res: any) => {
+    if (res[0].length > 0) {
+      result.count = res[0][0].count
+      await sequelize.query(findQuery).then((res: any) => {
+        result.rows = res[0]
+      })
+    }
+  })
+
+  return result
+}
+
 /** 
  * Returns all Users
  * @method createUser
@@ -127,7 +216,10 @@ const findPaginated = async (payload: DetailsPaginatedPayload) => {
  * @returns {NewDetail} the created User Object
 */
 const create = async (detail: NewDetail) => {
-  detail.createdAt = new Date
+  if (!detail.createdAt) {
+    detail.createdAt = new Date
+  }
+  
   const retData = await PaymentDetail.create(detail)
 
   await createActivity({
@@ -154,4 +246,4 @@ const findByStudentId = async (id: number) => {
   return result
 }
 
-export { findAll, create, findByStudentIdAndAcademicYear, findByStudentIdPaginated, findPaginated, findByStudentId}
+export { findAll, create, findByStudentIdAndAcademicYear, findByStudentIdPaginated, findPaginated, findByStudentId, findRawPaginated}

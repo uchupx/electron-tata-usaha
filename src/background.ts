@@ -10,7 +10,7 @@ import path from 'path'
 import fs from 'fs'
 declare const __static: string;
 // import img from './assets/download.jpeg';
-import { testHtml, templateKwitansi, templateKwitansiItems } from './template'
+import { testHtml, templateKwitansi, templateKwitansiItems, templateReport, templateReportItems } from './template'
 /* import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
  */const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -26,8 +26,8 @@ protocol.registerSchemesAsPrivileged([
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1080,
+    height: 720,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -72,6 +72,19 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+
+  const config = {
+    logo: '',
+    schoolName: '',
+    autoBackup: false,
+    backupEvery: 'transaction',
+    hostBackup: 'http://localhost:3000'
+  }
+
+  if (!fs.existsSync(`${app.getPath("userData")}/config.json`)) {
+    fs.writeFileSync(`${app.getPath("userData")}/config.json`, JSON.stringify(config))
+  }
+
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     // Devtools extensions are broken in Electron  6/7/<8.25 on Windows
@@ -118,6 +131,14 @@ if (isDevelopment) {
 
 const options2 = {
   marginsType: 1,
+  pageSize: 'A4',
+  printBackground: true,
+  printSelectionOnly: false,
+  landscape: false
+}
+
+const options = {
+  marginsType: 1,
   pageSize: 'A5',
   printBackground: true,
   printSelectionOnly: false,
@@ -133,6 +154,11 @@ ipcMain.on('print-pdf', async (event, payload) => {
     }
   });
 
+  const rawData = fs.readFileSync(`${app.getPath("userData")}/config.json`, { encoding: 'utf8', flag: 'r' })
+  const data = JSON.parse(rawData)
+  console.log(`${app.getPath("userData")}/config.json`);
+  console.log(data);
+
   let template = templateKwitansi
   let itemsTemplate = ''
 
@@ -143,6 +169,8 @@ ipcMain.on('print-pdf', async (event, payload) => {
     itemsTemplate = itemsTemplate.concat(itemsTemplateTmp)
   }
 
+  template = template.replace('{{logo}}', data.logo)
+  template = template.replace('{{schoolName}}', data.schoolName)
   template = template.replace('{{tanggalDibuat}}', payload.payload.tanggalDibuat)
   template = template.replace('{{nama}}', payload.payload.nama)
   template = template.replace('{{kelas}}', payload.payload.kelas)
@@ -156,7 +184,7 @@ ipcMain.on('print-pdf', async (event, payload) => {
 
 
   wind.webContents.on('did-finish-load', () => {
-    wind.webContents.printToPDF(options2).then(data => {
+    wind.webContents.printToPDF(options).then(data => {
       fs.writeFile(filePath, data, function (err: any) {
         if (err) {
           console.log(err);
@@ -201,6 +229,134 @@ ipcMain.on('print-pdf', async (event, payload) => {
   event.returnValue = true
 })
 
+ipcMain.on('print-report', async (event, payload) => {
+  const htmlPath = path.join(app.getPath("userData"), "report.html")
+  const filePath = path.join(app.getPath("userData"), "report.pdf")
+  const wind = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  });
+
+  const rawData = fs.readFileSync(`${app.getPath("userData")}/config.json`, { encoding: 'utf8', flag: 'r' })
+
+  const data = JSON.parse(rawData)
+  console.log(`${app.getPath("userData")}/config.json`);
+  console.log(data);
+  let template = templateReport
+  let itemsTemplate = ''
+
+  for (const idx in payload.payload.items) {
+    let itemsTemplateTmp = templateReportItems
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{id}}', payload.payload.items[idx].id)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{jenis}}', payload.payload.items[idx].jenis)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{nama}}', payload.payload.items[idx].nama)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{kelas}}', payload.payload.items[idx].kelas)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{bayar}}', payload.payload.items[idx].bayar)
+    itemsTemplateTmp = itemsTemplateTmp.replace('{{deskripsi}}', payload.payload.items[idx].deskripsi)
+    itemsTemplate = itemsTemplate.concat(itemsTemplateTmp)
+  }
+
+  template = template.replace('{{logo}}', data.logo)
+  template = template.replace('{{schoolName}}', data.schoolName)
+  template = template.replace('{{createdAt}}', payload.payload.createdAt)
+  template = template.replace('{{reportType}}', payload.payload.reportType)
+  template = template.replace('{{dateStart}}', payload.payload.dateStart)
+  template = template.replace('{{dateEnd}}', payload.payload.dateEnd)
+  template = template.replace('{{items}}', itemsTemplate)
+  // template = template.replace('{{total}}', payload.payload.total)
+
+  await fs.writeFileSync(htmlPath, template);
+
+  wind.loadURL(`file://${htmlPath}`);
+
+
+  wind.webContents.on('did-finish-load', () => {
+    wind.webContents.printToPDF(options2).then(data => {
+      fs.writeFile(filePath, data, function (err: any) {
+        if (err) {
+          console.log(err);
+        } else {
+          // fs.unlinkSync(htmlPath)
+          dialog.showSaveDialog({
+            title: "Select the File Path to save",
+            defaultPath: path.join(app.getPath('documents'), "Contoh report.pdf"),
+            // defaultPath: path.join(__dirname, '../assets/'),
+            buttonLabel: "Save",
+            // Restricting the user to only Text Files.
+            filters: [
+              {
+                name: "Document",
+                extensions: ["pdf"],
+              },
+            ],
+            // properties: [],
+          }).then((file) => {
+            // Stating whether dialog operation was cancelled or not.
+            console.log(file.canceled);
+            if (!file.canceled) {
+              console.log(file.filePath!.toString());
+
+              // Creating and Writing to the sample.txt file
+              fs.copyFileSync(
+                filePath,
+                file.filePath!.toString()
+              );
+              fs.unlinkSync(filePath)
+            }
+          })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+    }).catch(error => {
+      console.log(error)
+    });
+  });
+  event.returnValue = true
+})
+
+ipcMain.on('do-save-backup', async (event, payload) => {
+  const filePath = path.join(app.getPath("userData"), "backup.txt")
+
+  await fs.writeFileSync(filePath, payload);
+
+
+  dialog.showSaveDialog({
+    title: "Select the File Path to save",
+    defaultPath: path.join(app.getPath('documents'), "Contoh backup.txt"),
+    // defaultPath: path.join(__dirname, '../assets/'),
+    buttonLabel: "Save",
+    // Restricting the user to only Text Files.
+    filters: [
+      {
+        name: "Document",
+        extensions: ["txt"],
+      },
+    ],
+    // properties: [],
+  }).then((file) => {
+    // Stating whether dialog operation was cancelled or not.
+    console.log(file.canceled);
+    if (!file.canceled) {
+      console.log(file.filePath!.toString());
+
+      // Creating and Writing to the sample.txt file
+      fs.copyFileSync(
+        filePath,
+        file.filePath!.toString()
+      );
+      fs.unlinkSync(filePath)
+    }
+  })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  event.returnValue = true
+})
 
 ipcMain.on('ping', event => {
   console.log('pong')
@@ -208,4 +364,8 @@ ipcMain.on('ping', event => {
   dialog.showMessageBox(win!, { message: "test" })
   // Send reply to a renderer
   event.returnValue = 'pong'
+})
+
+ipcMain.on('get-root-path', event => {
+  event.returnValue = app.getPath('userData')
 })

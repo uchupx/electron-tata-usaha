@@ -1,6 +1,6 @@
 <template>
   <div>
-    <label class="font-bold text-gray-700 text-lg" >Pembayaran - {{ uppercase(idName) }}</label>
+    <label class="font-bold text-gray-700 text-lg" >Pembayaran</label>
     <div class="flex w-full flex-col">
         <div class="w-full p-3 text-sm h-auto bg-white shadow-sm rounded-lg flex flex-col">
           <label>Pilih Siswa</label>
@@ -8,16 +8,16 @@
           <div class="flex">
             <div class="w-1/2 mr-1">
               <label class="mt-2">Tahun Ajaran</label>
-              <select class="w-full list-kelas p-2 rounded-lg bg-gray-100 h-9 mb-2" v-model="academicYearId">
+              <select class="w-full list-kelas p-2 rounded-lg border border-gray-300 bg-gray-100 h-9 mb-2" v-model="academicYearId">
                 <option value="0"></option>
                 <template v-for="academicYear in academicYears" :key="academicYear.id + '-' + academicYear.label">
                   <option :value="academicYear.id">{{academicYear.label}}</option>
                 </template>
               </select>
             </div>
-            <div class="w-1/2 ml-1" v-if="result.key == 'spp'">
+            <div class="w-1/2 ml-1" v-if="showSpp">
               <label class="mt-2">Semester</label>
-              <select class="w-full list-kelas p-2 rounded-lg bg-gray-100 h-9 mb-2" v-model="selectedSemester" @change="updateStatus()">
+              <select class="w-full list-kelas p-2 border border-gray-300 rounded-lg bg-gray-100 h-9 mb-2" v-model="selectedSemester" @change="updateStatus()">
                 <option></option>
                 <template v-for="(item, index) in semester" :key="item.label">
                 <option :value="index">{{item.label}}</option>
@@ -26,11 +26,34 @@
             </div>
           </div>
 
-          <template v-if="result.key == 'spp'">
+          <!-- <template v-else> -->
+            <label class="mt-2">Pilih tagihan yang ingin di bayar </label>
+            <template v-if="group.length > 0">
+              <div class="rounded-lg border border-gray-300 bg-gray-100 w-full h-auto flex flex-wrap p-2">
+                <template v-for="item in filteredGroup" :key="'item-group' + item.id">
+                  <div class="w-1/2 flex">
+                    <label class="flex justify-start items-start">
+                      <div class="bg-white border-2 rounded border-gray-400 w-6 h-6 flex flex-shrink-0 justify-center items-center mr-2 focus-within:border-blue-500">
+                        <input type="checkbox" class="opacity-0 absolute" @change="pushItem(item)" :disabled="item.key != 'spp' && isPaymentDisable(item) == 0 " :key="'item-key-' + item.id + '-' + academicYearId">
+                        <svg class="fill-current hidden w-4 h-4 text-green-500 pointer-events-none" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>
+                      </div>
+                      <div class="select-none">{{item.label}} 
+                        <template v-if="item.key != 'spp'">
+                          <span class="text-xs text-green-600 italic" v-if="isPaymentDisable(item) == 0"> Sudah di bayar</span>
+                          <span class="text-xs text-yellow-400 italic" v-else-if="isPaymentDisable(item) != item.price">Sisa bayar Rp. {{isPaymentDisable(item).toLocaleString()}}</span>
+                        </template>
+                      </div>
+                    </label>
+                  </div>
+                </template>
+              </div>
+            </template>
+          <!-- </template> -->
+          <template v-if="showSpp">
             <label>SPP</label>
             <div class="flex">
               <div class="w-1/2 mr-1">
-              <select class="w-full list-kelas p-2 rounded-lg bg-gray-100 h-9 mb-2" v-model="monthFrom" :disabled="semester[selectedSemester].isPaidUntil > 5">
+              <select class="w-full list-kelas p-2 border border-gray-300 rounded-lg bg-gray-100 h-9 mb-2" v-model="monthFrom" :disabled="semester[selectedSemester].isPaidUntil > 5">
                 <option></option>
                 <template v-for="(month, idx) in months[selectedSemester]" :key="month">
                   <option :value="idx" :disabled="idx < semester[selectedSemester].isPaidUntil">{{month}}</option>
@@ -41,7 +64,7 @@
                 <label>s/d</label>
               </div>
               <div class="w-1/2 ml-1">
-                <select class="w-full list-kelas p-2 rounded-lg bg-gray-100 h-9 mb-2" v-model="monthUntil" :disabled="semester[selectedSemester].isPaidUntil > 5">
+                <select class="w-full list-kelas p-2 border border-gray-300 rounded-lg bg-gray-100 h-9 mb-2" v-model="monthUntil" :disabled="semester[selectedSemester].isPaidUntil > 5">
                   <option></option>
                   <template v-for="(month, idx) in months[selectedSemester]" :key="month">
                       <option :value="idx" :disabled="idx < monthFrom">{{month}}</option>
@@ -50,29 +73,6 @@
               </div>
             </div>
             <label class="text-xs text-green-600 font-italic" v-if="semester[selectedSemester].isPaidUntil > 5">*Spp semester {{selectedSemester + 1}} sudah lunas </label>
-          </template>
-
-          <template v-else>
-            <label class="mt-2">Pilih tagihan yang ingin di bayar </label>
-            <template v-if="group.length > 0">
-              <div class="rounded-lg bg-gray-100 w-full h-auto flex flex-wrap p-2">
-                <template v-for="item in filteredGroup" :key="'item-group' + item.id">
-                  <div class="w-1/2 flex" v-if="item.key !== 'spp'">
-                    <label class="flex justify-start items-start">
-                      <div class="bg-white border-2 rounded border-gray-400 w-6 h-6 flex flex-shrink-0 justify-center items-center mr-2 focus-within:border-blue-500">
-                        <input type="checkbox" class="opacity-0 absolute" @change="pushItem(item)" :disabled="isPaymentDisable(item) == 0 " :key="'item-key-' + item.id + '-' + academicYearId">
-                        <svg class="fill-current hidden w-4 h-4 text-green-500 pointer-events-none" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>
-                      </div>
-                      <div class="select-none">{{item.label}} 
-                        <span class="text-xs text-green-600 italic" v-if="isPaymentDisable(item) == 0"> Sudah di bayar</span>
-                        <span class="text-xs text-yellow-400 italic" v-else-if="isPaymentDisable(item) != item.price">Sisa bayar Rp. {{isPaymentDisable(item).toLocaleString()}}</span>
-                        <!-- <span class="text-xs text-green-600 italic" v-else>-</span> -->
-                      </div>
-                    </label>
-                  </div>
-                </template>
-              </div>
-            </template>
           </template>
         </div>
     
@@ -89,7 +89,7 @@
               </div>
               <template v-for="(item, idx) in forms" :key="'spp-' + idx" >
                 <div class="w-full flex border-b px-3 py-1 rounded-t-lg text-xs">
-                  <label class="w-1/3 mb-1"> {{result.key === 'spp' ? 'SPP' :findLabel(item.paymentId)}} </label>
+                  <label class="w-1/3 mb-1"> {{findLabel(item.paymentId)}} </label>
                   <label class="w-1/3 mb-1">Rp. {{item.pay.toLocaleString()}}</label>
                   <label class="w-1/3 mb-1">{{item.description}}</label>
                 </div>
@@ -102,8 +102,8 @@
           </div>
         </div>
         <template v-if="!result || result.key != 'spp'">
-          <label class="mt-2  text-xs" :class="forms.length > 1 ? ' italic text-red-600' : ''">{{ forms.length > 1 ? "Tidak bisa mencicil jika memilih 2 jenis bayaran" : 'Isi jumlah yang di bayarkan, jika membayar dengan cara di cicil'}}</label>
-          <input type="number" class="rounded-lg border border-gray-400 p-2 text-right" :placeholder="'Rp. '+ total.toLocaleString()" :disabled="forms.length > 1" v-model="pay">
+          <label class="mt-2  text-xs" :class="!isCanInstallment ? ' italic text-red-600' : ''">{{ !isCanInstallment ? "Tidak bisa mencicil jika memilih 2 jenis bayaran" : 'Isi jumlah yang di bayarkan, jika membayar dengan cara di cicil'}}</label>
+          <input type="number" class="rounded-lg border border-gray-400 p-2 text-right" :placeholder="'Rp. '+ total.toLocaleString()" :disabled="!isCanInstallment" v-model="pay">
         </template>
       <button type="button" @click="submit" :disabled="buttonDisable" :class="buttonDisable || isSubmitLoading? 'cursor-not-allowed opacity-50' : ''"  class="w-full bg-blue-600 p-2 mt-2 rounded-lg text-white flex justify-center">
         <template v-if="isSubmitLoading">
@@ -123,11 +123,7 @@
           <button type="button" class="p-2 rounded-lg bg-blue-500 text-white" @click="savePdf">Simpan</button>
         </div>
       </div>
-      <!-- <component :is="modalComponent"></component> -->
     </div>
-    <!-- <template v-if="result">
-      {{result}}
-    </template> -->
   </div>
 </template>
 <script lang="ts">
@@ -172,6 +168,7 @@ import {
   semesterByIdx,
   paymentWithClasses,
 } from "@/helper/index";
+import moment from "moment";
 
 export default defineComponent({
   data() {
@@ -188,6 +185,7 @@ export default defineComponent({
       details: Array<PaymentDetail>(),
       semester: Array<Semester>(),
       showModal: false,
+      showSpp: false,
       isLoading: false,
       isSubmitLoading: false,
       count: 0,
@@ -213,6 +211,7 @@ export default defineComponent({
       } else {
         this.monthUntil = this.monthFrom;
       }
+
       this.createForms();
     },
     async academicYearId(val, oldVal) {
@@ -231,20 +230,17 @@ export default defineComponent({
         this.monthUntil = this.semester[this.selectedSemester].isPaidUntil;
       }
 
-
-      if (this.idName.toString() != "spp") {
-        this.forms = [];
-      }
+      this.forms = [];
     },
     student() {
       this.createForms();
     },
     selectedSemester(val, oldVal) {
       if (Number.isInteger(val)) {
-      this.monthFrom = this.semester[val].isPaidUntil;
-      this.monthUntil = this.semester[val].isPaidUntil;
+        this.monthFrom = this.semester[val].isPaidUntil;
+        this.monthUntil = this.semester[val].isPaidUntil;
 
-      this.createForms();
+        this.createForms();
       }
     },
     monthUntil() {
@@ -263,12 +259,33 @@ export default defineComponent({
   },
   computed: {
     buttonDisable(): boolean {
-      if (this.result.key === "spp") {
+      const paymentPpdb = this.group.find(
+        (i) => i.key == "ppdb" && i.isActive
+      )!;
+
+      const isHasPpdb =
+         this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
+
+      if (this.showSpp && isHasPpdb) {
+        const paymentSpp = this.group.find(
+          (i) => i.key == "spp" && i.isActive
+        )!;
+
+        let totalPrice = 0;
+        for (const idx in this.forms) {
+          totalPrice = Number(this.forms[idx].pay) + totalPrice;
+        }
+
+        const totalSpp =
+          this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
+          paymentSpp.price!;
+
         return (
           this.forms.length === 0 ||
           Object.keys(this.student).length === 0 ||
           this.academicYearId === 0 ||
-          this.semester[this.selectedSemester].isPaidUntil > 5
+          Number(this.pay) < totalSpp ||
+          Number(this.pay) > totalPrice
         );
       } else {
         return (
@@ -278,46 +295,59 @@ export default defineComponent({
         );
       }
     },
+    isCanInstallment(): boolean {
+      const paymentSpp = this.group.find((i) => i.key == "spp" && i.isActive)!;
+      return this.forms.filter((i) => i.paymentId != paymentSpp.id).length < 2;
+    },
     studentsWithClass(): { id: number; name: string }[] {
       const students = [];
+
       for (const i in this.students) {
         students.push({
           id: this.students[i].id!,
           name: this.students[i].className + "  " + this.students[i].name!,
         });
       }
+
       return students;
     },
   },
   methods: {
     createForms() {
       this.total = 0;
-      if (this.result.key !== "spp") {
+
+      if (!this.showSpp) {
         return;
       }
+
       if (Object.keys(this.student).length === 0) {
         return;
       }
-      this.forms = [];
+
+      const payment = this.group.find((i) => i.key == "spp")!;
+
+      this.forms = this.forms.filter((i) => i.paymentId != payment.id);
+
       for (
         let index = 0;
         index < this.monthUntil - this.monthFrom + 1;
         index++
       ) {
         this.forms.push({
-          pay: parseInt(this.result.price),
+          pay: payment.price!,
           description:
             this.months[this.selectedSemester][this.monthFrom + index],
           studentId: this.student.id,
-          paymentId: this.result.id,
+          isInstalment: false,
+          paymentId: payment.id,
           academicYearId: this.academicYearId,
-          // referId: "",
-          // isInstalment: "",
         });
       }
+
       this.forms.forEach((i) => {
         this.total = this.total + i.pay;
       });
+
       return;
     },
     async selected(id: any) {
@@ -326,38 +356,43 @@ export default defineComponent({
         this.student.id,
         this.academicYearId
       );
+
       this.fetchAcademicYear();
       this.updateStatus();
     },
     updateStatus() {
-      if (this.result.key === "spp") {
-        // let value = 0;
-        this.monthFrom = 0;
-        this.monthUntil = 0;
+      const payment = this.group.find((i) => i.key == "spp")!;
 
-        for (const idxSemester in this.months) {
-          let isPaidUntil = 0;
+      this.monthFrom = 0;
+      this.monthUntil = 0;
 
-          for (const idx in this.details) {
-            const detail = this.details[idx];
-            const tmpValue =
-              this.months[idxSemester].findIndex((item) => {
-                return item === detail.description;
-              }) + 1;
+      for (const idxSemester in this.months) {
+        let isPaidUntil = 0;
 
-            if (tmpValue > isPaidUntil) {
-              isPaidUntil = tmpValue;
-            }
+        for (const idx in this.details) {
+          const detail = this.details[idx];
+
+          if (detail.paymentId != payment.id) {
+            continue;
           }
 
-          this.semester[idxSemester].isPaidUntil = isPaidUntil;
+          const tmpValue =
+            this.months[idxSemester].findIndex((item) => {
+              return item === detail.description;
+            }) + 1;
+
+          if (tmpValue > isPaidUntil) {
+            isPaidUntil = tmpValue;
+          }
         }
-        // this.monthFrom = value;
+
+        this.semester[idxSemester].isPaidUntil = isPaidUntil;
       }
     },
     find(name: string) {
       this.payload.name = name;
       this.isLoading = true;
+
       findPaginated(this.payload)
         .then((result) => {
           this.count = result.count;
@@ -369,28 +404,59 @@ export default defineComponent({
     },
     async submit() {
       this.isSubmitLoading = true;
-      for (const i in this.forms) {
-        const form = this.forms[i];
-        if (this.forms.length === 1) {
-          form.isInstalment = this.pay
-            ? Number(this.pay) < Number(form.pay)
-            : false;
-          form.pay = this.pay ? Number(this.pay) : form.pay;
-        }
+      let totalPay = 0;
 
-        // console.log(form)
-        await create(form);
+      const payment = this.group.find((i) => i.key == "ppdb")!;
+      const formsWithOutInstallment = this.forms.filter(
+        (i) => i.paymentId != payment.id
+      );
+      const formsWithInstallment = this.forms.find(
+        (i) => i.paymentId == payment.id
+      );
+
+      this.forms = [];
+
+      for (const i in formsWithOutInstallment) {
+        const form = formsWithOutInstallment[i];
+
+        form.isInstalment = false;
+        totalPay = Number(form.pay) + totalPay;
       }
+
+      this.forms.push(...formsWithOutInstallment);
+
+      if (this.pay && Number(this.pay) > totalPay) {
+        if (formsWithInstallment) {
+          formsWithInstallment.isInstalment == Number(this.pay) < totalPay;
+          formsWithInstallment.pay = Number(this.pay) - totalPay;
+
+          this.forms.push(formsWithInstallment);
+        }
+      }
+
+      // for (const idx in this.forms) {
+      //   await create(this.forms[idx]);
+      // }
+
       createToast("Pembayaran Berhasil", {
         hideProgressBar: true,
         type: "success",
       });
+
       this.showModal = true;
       this.isSubmitLoading = false;
-      // this.$router.push({ name: "pembayaran" });
+    },
+    clearForm() {
+      this.forms = [];
+      this.keyword = "";
+      this.selectedSemester = 0;
+      this.academicYearId = 0;
+      // this.student = {}
+      return;
     },
     closeModal() {
       this.showModal = false;
+      this.clearForm();
       this.$router.push({ name: "pembayaran" });
     },
     uppercase(str: string) {
@@ -408,19 +474,18 @@ export default defineComponent({
         const payment = this.group.find(
           (i) => i.id === this.forms[idx].paymentId
         )!;
-        const label =
-          this.idName.toString() === "spp"
-            ? payment.label + " " + this.forms[idx].description
-            : payment.label;
+        const label = payment.label;
         const price = payment.price!;
+
         items.push({
           jenis: label,
           harga: price.toLocaleString(),
         });
       }
+
       ipcRenderer.sendSync("print-pdf", {
         payload: {
-          tanggalDibuat: "01 Januari, 2021",
+          tanggalDibuat: moment().format('MMMM Do YYYY, HH:mm:ss'),
           nama: this.student.name,
           kelas: academicYear.className,
           total: this.total.toLocaleString(),
@@ -428,11 +493,13 @@ export default defineComponent({
           items: items,
         },
       });
+
       this.closeModal();
     },
     findPayment() {
       return findByName(this.idName.toString()).then((response) => {
         this.result = response;
+
         return findGroup(this.idName.toString()).then((res: any) => {
           this.group = res;
         });
@@ -440,8 +507,15 @@ export default defineComponent({
     },
     pushItem(item: Payment) {
       this.total = 0;
+
+      if (item.key == "spp") {
+        this.showSpp = !this.showSpp;
+        return;
+      }
+
       const pay = this.isPaymentDisable(item);
       const idx = this.forms.findIndex((i) => i.paymentId === item.id);
+
       if (idx > -1) {
         const tmp = this.forms.filter((i) => i.paymentId != item.id);
         this.forms = tmp;
@@ -463,6 +537,7 @@ export default defineComponent({
     },
     paymentLabel(id: number) {
       const idx = this.group.findIndex((i) => i.id === id);
+
       return this.group[idx].label;
     },
     async fetchAcademicYear() {
@@ -470,6 +545,7 @@ export default defineComponent({
     },
     findLabel(id: number) {
       const idx = this.group.findIndex((i) => i.id! === id);
+
       return this.group[idx].label;
     },
     async fetchPayment() {
@@ -503,10 +579,13 @@ export default defineComponent({
     isPaymentDisable(item: Payment) {
       let remainPaid = item.price!;
       let totalPaid = 0;
+
       for (const idx in this.details) {
         const detail = this.details[idx];
+
         if (item.id == detail.paymentId) {
           totalPaid = totalPaid + detail.pay;
+
           if (totalPaid >= item.price!) {
             remainPaid = 0;
             break;
@@ -515,23 +594,21 @@ export default defineComponent({
           }
         }
       }
+
       return remainPaid;
     },
   },
   async mounted() {
     this.months = monthsBySemester;
+
     for (const idx in semesterByIdx) {
       this.semester.push({
         label: semesterByIdx[idx].inString,
         isPaidUntil: 0,
       });
     }
-    this.idName = this.$route.params.idName as any;
-    if (this.idName.toString() === "spp") {
-      this.findPayment();
-    } else {
-      this.fetchPayment();
-    }
+
+    this.fetchPayment();
   },
 });
 </script>

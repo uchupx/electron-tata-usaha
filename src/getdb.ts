@@ -79,6 +79,9 @@ Payment.init({
     updatedAt: {
         type: DataTypes.DATE, allowNull: true
     },
+    isActive: {
+        type: DataTypes.BOOLEAN, allowNull: true
+    }
 
 }, { tableName: 'payments', sequelize })
 Payment.sync()

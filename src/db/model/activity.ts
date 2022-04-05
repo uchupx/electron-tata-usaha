@@ -10,6 +10,10 @@ export class Activity extends Model {
     public entity!: string | null;
     public type!: string | null;
     public id!: number | null
+
+    public toJson() {
+        this.get
+    }
 }
 
 //  { User };

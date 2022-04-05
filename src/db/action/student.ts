@@ -1,6 +1,7 @@
 // todo this file provides an API to interact with the db users 
 //todo table making it easier to work with
 import { sequelize, Student } from "../../getdb"
+import { Op } from "sequelize"
 import { StudentPaginatedPayload } from "../enums/paginated"
 import { Student as model } from "../model/student"
 import { create as createActivity } from "@/db/action/activity"
@@ -61,7 +62,7 @@ const findByNameAndClassIdQuery = `
         AND student_class.class_id ={classId}
     ORDER BY student_class.created_at ASC`
 
-interface NewStudent {
+export interface NewStudent {
     name: string | null;
     address: string | null;
     semester: number | null;
@@ -87,9 +88,21 @@ const getAll = async () => {
 
 const findById = async (id: number) => {
 
-    const result = await Student.findOne({where: {
-        Id: id.toString()
-    }})
+    const result = await Student.findOne({
+        where: {
+            Id: id.toString()
+        }
+    })
+
+    return result
+}
+
+const findByIds = async (ids: Array<number>) => {
+    const result = await Student.findAll({
+        where: {
+            Id: { [Op.in]: ids }
+        }
+    })
 
     return result
 }
@@ -125,7 +138,6 @@ const countStudents = async () => {
 
     return count
 }
-
 
 /** 
  * Returns all Students
@@ -181,7 +193,10 @@ const findPaginated = async (payload: StudentPaginatedPayload) => {
  * @returns {NewStudent} the created User Object
 */
 const create = async (student: NewStudent) => {
-    student.createdAt = new Date
+    if (!student.createdAt) {
+        student.createdAt = new Date
+    }
+
     const retData = await Student.create(student)
     await createActivity({
         type: entityCreate,
@@ -205,4 +220,15 @@ const update = async (student: Student) => {
     return student
 }
 
-export { getAll, create, findPaginated, findById, countStudents, update, findByNameAndClassId }
+const findAll = async () => {
+    const result = await Student.findAll()
+    return result
+}
+
+const isExist = async (name: string) => {
+    const result = await Student.findOne({ where: { name: name } })
+
+    return result?.id
+}
+
+export { getAll, create, findPaginated, findById, findByIds, countStudents, update, findByNameAndClassId, findAll, isExist }

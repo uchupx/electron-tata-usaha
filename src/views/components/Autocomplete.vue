@@ -1,6 +1,6 @@
 <template>
   <div class="relative w-full">
-    <div class="flex items-center justify-start bg-gray-100 p-1 rounded-lg" :class="classCustom">
+    <div class="flex items-center justify-start border border-gray-300 bg-gray-100 p-1 rounded-lg" :class="classCustom">
       <div class="flex w-full  p-0 rounded-full">
         <button class="flex items-center justify-center p-1 border-0 rounded-full">
           <SearchIcon class="h-5 w-5 text-gray-500"/>
@@ -63,7 +63,7 @@ export default defineComponent({
       if (this.isAutoFilled) {
         this.keyword = item.name;
       } else {
-        this.keyword = ""
+        this.keyword = "";
       }
       this.$emit("selected", item.id);
     },

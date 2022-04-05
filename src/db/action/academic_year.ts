@@ -50,5 +50,11 @@ const findAcademicYearByStudentId = async (studentId: number) => {
   return result
 }
 
+const update = async (data: AcademicYear) => {
+  await data.save()
 
-export { isExist, create, findAll, findAcademicYearByStudentId }
+  return data.id
+}
+
+
+export { isExist, create, findAll, findAcademicYearByStudentId, update }

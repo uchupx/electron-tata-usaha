@@ -11,7 +11,8 @@ import store from './stores/index'
 import { sequelize } from "./getdb"
 import './index.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 // todo sqlite db
 sequelize.authenticate().then(() => console.log("connected")

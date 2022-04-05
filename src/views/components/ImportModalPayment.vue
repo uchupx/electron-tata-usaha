@@ -37,7 +37,7 @@
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import { UploadIcon, CheckCircleIcon } from "@heroicons/vue/outline";
-import { create } from "@/db/action/payment";
+import { create, findByName, update } from "@/db/action/payment";
 import XLSX from "xlsx";
 import Spinner from "@/views/components/Spinner.vue";
 
@@ -79,15 +79,23 @@ export default defineComponent({
           const result = XLSX.utils.sheet_to_json(sheet) as any;
 
           for (const i in result) {
-            const newStudent = {
+            const isPaymentExist = await findByName(result[i].key)
+
+            if (isPaymentExist) {
+              const payment = isPaymentExist
+              payment.isActive = false
+              await update(payment)
+            }
+            
+            const newPayment = {
               price: result[i].harga,
               label: result[i].nama,
               key: result[i].key,
+              isActive: true,
               group: result[i].group,
             };
-            console.log(newStudent);
 
-            await create(newStudent);
+            await create(newPayment);
           }
           resolve(true);
         };

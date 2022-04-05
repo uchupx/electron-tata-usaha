@@ -3,7 +3,7 @@
     <Sidebar/>
     <div class="flex flex-col w-full flex-2 max-h-screen">
       <Navbar class="flex1"/>
-      <div class="bg-gray-100 p-3 h-full overflow-y-auto">
+      <div class="bg-gray-300 p-3 h-full overflow-y-auto">
         <router-view :key="$route.fullPath"/>
       </div>
     </div>
@@ -15,22 +15,33 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
-import Navbar from '@/views/components/Navbar.vue'
-import Sidebar from '@/views/components/Sidebar.vue'
-import Modal from '@/views/components/Modal.vue'
-import { mapState } from 'vuex'
+import { defineComponent } from "vue";
+import Navbar from "@/views/components/Navbar.vue";
+import Sidebar from "@/views/components/Sidebar.vue";
+import Modal from "@/views/components/Modal.vue";
+import { mapState, mapActions } from "vuex";
+import { ipcRenderer } from "electron";
 
 export default defineComponent({
   components: {
     Navbar,
     Sidebar,
-    Modal
+    Modal,
   },
   computed: {
-    ...mapState('app', ['isModalOpen'])
-  }
-})
+    ...mapState("app", ["isModalOpen"]),
+  },
+  methods: {
+    ...mapActions("app", ["initialize"]),
+    getRootPath() {
+      const result = ipcRenderer.sendSync('get-root-path')
+      return result
+    }
+  },
+  mounted() {
+    this.initialize(this.getRootPath());
+  },
+});
 </script>
 
 <style lang="scss">
@@ -57,11 +68,11 @@ export default defineComponent({
   margin: 12px 0 0 12px;
 }
 .flex1 {
-  flex:1
+  flex: 1;
 }
 
 .flex-2 {
-  flex: 2
+  flex: 2;
 }
 
 .emulated-flex-gap {

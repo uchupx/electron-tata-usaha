@@ -58,6 +58,7 @@ import { UsersIcon } from "@heroicons/vue/outline";
 import { remote, ipcRenderer } from "electron";
 import { findPaginated } from "@/db/action/payment_detail";
 import PaginationButton from "@/views/components/PaginationButton.vue";
+import { DetailsPaginatedPayload } from "@/db/enums/paginated";
 export default defineComponent({
   setup() {
     const doPrint = async () => {
@@ -75,7 +76,7 @@ export default defineComponent({
       historiesPayload: {
         limit: 10,
         offset: 0,
-      },
+      } as DetailsPaginatedPayload,
       currentPage: 1,
     };
   },

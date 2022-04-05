@@ -3,6 +3,7 @@
 import { Activity, sequelize } from "../../getdb"
 import { ActivityPaginatedPayload } from "@/db/enums/paginated"
 import { Activity as model } from "../model/activity"
+import { BackupHandler } from "@/handlers/backup";
 
 interface NewActivity {
   payload: any | null;
@@ -79,7 +80,16 @@ const findPaginated = async (payload: ActivityPaginatedPayload) => {
 const create = async (user: NewActivity) => {
   user.payload = JSON.stringify(user.payload)
   await Activity.create(user)
+
+  const handler = new BackupHandler();
+  handler.createBackup(true);
   return true
 }
 
-export { findPaginated, create }
+const findAll =  async () => {
+  const result = await Activity.findAll()
+
+  return result
+}
+
+export { findPaginated, create, findAll }

@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex h-14 items-center justify-between flex-wrap bg-white shadow-sm p-2">
+  <nav class="flex h-14 items-center justify-between flex-wrap bg-blue-500 shadow-sm p-2">
     <div class="flex items-center flex-no-shrink text-white mr-6">
       <!-- <span class="font-semibold text-xl tracking-tight">Tata Usaha</span> -->
     </div>

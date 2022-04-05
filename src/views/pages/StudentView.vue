@@ -2,36 +2,54 @@
   <div>
     <template v-if="student">
       <label class="text-lg font-bold text-gray-600">Data Siswa</label>
-      <div class="flex bg-white w-full rounded-lg p-3 shadow-sm h-auto">
-        <div class="mr-3">
-          <UserCircleIcon class=" w-24 h-24 text-gray-600"/>
-        </div>
-        <div class="w-full flex items-center flex-wrap text-gray-800">
-          <div class="w-1/3">
-            <label class="block mb-1">Nama</label>
+      <div class="flex flex-col bg-white w-full rounded-lg p-3 shadow-sm h-auto">
+        <div class="flex w-full">
+          <div class="mr-3">
+            <UserCircleIcon class=" w-24 h-24 text-gray-600"/>
           </div>
-          <div class="w-2/3">
-            <label class="block mb-1">: {{student.name}} <span v-if="student.is_orphan" class="text-red-600">*</span></label>
+          <div class="w-full flex items-center flex-wrap text-gray-800">
+            <div class="w-1/3">
+              <label class="block mb-1">Nama</label>
+            </div>
+            <div class="w-2/3">
+              <template v-if="editMode">
+                <input type="text" class="bg-gray-100 border border-gray-300 p-2 h-9 w-full rounded-lg hover:outline-none  mb-1 focus-within:outline-none focus:outline-none input" v-model="student.name"  placeholder="Nama siswa">
+              </template>
+              <label v-else class="block mb-1">: {{student.name}} <span v-if="student.is_orphan" class="text-red-600">*</span></label>
+            </div>
+            <div class="w-1/3">
+              <label class="block mb-1">Jenis Kelamin</label>
+            </div>
+            <div class="w-2/3">
+              <template v-if="editMode">
+                <select class="w-full list-kelas p-2 rounded-lg mb-1 bg-gray-100 h-9 border-gray-700 border" v-model="student.gender">
+                  <option value="L">Laki-Laki</option>
+                  <option value="P">Perempuan</option>
+                </select>
+              </template>
+              <label v-else class="block mb-1">: {{student.gender}}</label>
+            </div>
+            <div class="w-1/3">
+              <label class="block mb-1">Alamat</label>
+            </div>
+            <div class="w-2/3">
+              <template v-if="editMode">
+                <textarea class="bg-gray-100 border border-gray-300 p-2 w-full rounded-lg hover:outline-none  mb-1 focus-within:outline-none focus:outline-none input" v-model="student.address">
+                </textarea>
+              </template>
+              <label v-else class="block mb-1">: {{student.address}}</label>
+            </div>
           </div>
-          <!-- <div class="w-1/3">
-            <label class="block mb-1">Kelas</label>
           </div>
-          <div class="w-2/3">
-            <label class="block mb-1">: {{student.className}}</label>
-          </div> -->
-          <div class="w-1/3">
-            <label class="block mb-1">Jenis Kelamin</label>
-          </div>
-          <div class="w-2/3">
-            <label class="block mb-1">: {{student.gender}}</label>
-          </div>
-          <div class="w-1/3">
-            <label class="block mb-1">Alamat</label>
-          </div>
-          <div class="w-2/3">
-            <label class="block mb-1">: {{student.address}}</label>
-          </div>
-          <!-- {{student}} -->
+        <div class="flex justify-end">
+          <template v-if="editMode">
+            <button type="button" class="bg-red-500 p-2 text-white hover:bg-red-600 rounded-md mr-2" @click="editMode= false">Batal</button>
+            <button type="button" class="bg-green-500 p-2 text-white hover:bg-green-600 rounded-md" @click="submit">Simpan Perubahan</button>
+          </template>
+          <template v-else>
+            <!-- <button type="button" :disabled="true" class="bg-red-500 p-2 text-white hover:bg-red-600 rounded-md" @click="editMode= true">Hapus Siswa</button> -->
+            <button type="button" class="bg-blue-500 p-2 text-white hover:bg-blue-600 rounded-md" @click="editMode= true">Ubah Siswa</button>
+          </template>
         </div>
       </div>
 
@@ -103,7 +121,7 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import { findById } from "@/db/action/student";
+import { findById, update } from "@/db/action/student";
 import { findByStudentId } from "@/db/action/student_class";
 import { findAll } from "@/db/action/payment";
 import {
@@ -113,8 +131,11 @@ import {
 import { UserCircleIcon } from "@heroicons/vue/solid";
 import { Payment, PaymentDetail } from "@/db/model/payment";
 import PaginationButton from "@/views/components/PaginationButton.vue";
-import { paymentWithClasses} from "@/helper/index"
-import moment from "moment"
+import { paymentWithClasses } from "@/helper/index";
+import moment from "moment";
+import { DetailsPaginatedPayload } from "@/db/enums/paginated";
+import { createToast } from "mosha-vue-toastify";
+import "mosha-vue-toastify/dist/style.css";
 
 export default defineComponent({
   data() {
@@ -130,8 +151,9 @@ export default defineComponent({
       historiesPayload: {
         limit: 10,
         offset: 0,
-      },
+      } as DetailsPaginatedPayload,
       currentPage: 1,
+      editMode: false,
     };
   },
   components: {
@@ -184,55 +206,74 @@ export default defineComponent({
       return paymenWithClass.includes(payment.key!);
     },
     totalPay(payment: Payment, item: any) {
-      let detail: any
-      let totalPay = 0
+      let detail: any;
+      let totalPay = 0;
 
-      for(const idx in this.details) {
-        if (this.details[idx].id === payment.id && this.details[idx].academicYearId === item.academicYearId) {
-          detail = this.details[idx]
-          totalPay = totalPay + detail.pay
+      for (const idx in this.details) {
+        if (
+          this.details[idx].id === payment.id &&
+          this.details[idx].academicYearId === item.academicYearId
+        ) {
+          detail = this.details[idx];
+          totalPay = totalPay + detail.pay;
         }
       }
 
-      return totalPay
+      return totalPay;
     },
     statusLunas(payment: Payment, item: any) {
-      const totalPay = this.totalPay(payment, item)
+      const totalPay = this.totalPay(payment, item);
 
-      return totalPay === payment.price ? 'Lunas' : 'Belum Lunas'
+      return totalPay === payment.price ? "Lunas" : "Belum Lunas";
     },
     statusSpp(payment: Payment, item: any) {
-      let detail: any
+      let detail: any;
 
-      for(const idx in this.details) {
-        if (this.details[idx].id === payment.id && this.details[idx].academicYearId === item.academicYearId) {
-          detail = this.details[idx]
+      for (const idx in this.details) {
+        if (
+          this.details[idx].id === payment.id &&
+          this.details[idx].academicYearId === item.academicYearId
+        ) {
+          detail = this.details[idx];
         }
       }
 
-      return detail ? 'Terbayarkan' : 'Belum Lunas'
+      return detail ? "Terbayarkan" : "Belum Lunas";
     },
     sppDescription(payment: Payment, item: any) {
-      let detail: any
+      let detail: any;
 
-      for(const idx in this.details) {
-        if (this.details[idx].id === payment.id && this.details[idx].academicYearId === item.academicYearId) {
-          detail = this.details[idx]
+      for (const idx in this.details) {
+        if (
+          this.details[idx].id === payment.id &&
+          this.details[idx].academicYearId === item.academicYearId
+        ) {
+          detail = this.details[idx];
         }
       }
 
       if (detail) {
-        return detail.description
+        return detail.description;
       } else {
-        return '-'
+        return "-";
       }
     },
     async fetchPaymentDetails() {
       this.details = await findPaymentDetails(this.student.id);
     },
     dateToHumanize(date: string) {
-      return moment(date).format("DD MMMM YYYY")
-    }
+      return moment(date).format("DD MMMM YYYY");
+    },
+    async submit() {
+      await update(this.student);
+
+      createToast("Berhasil menyimpan perubahan data", {
+        hideProgressBar: true,
+        type: "success",
+      });
+
+      this.editMode = false;
+    },
   },
   mounted() {
     this.studentId = this.$route.params.id as any;
