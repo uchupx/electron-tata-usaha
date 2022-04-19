@@ -168,6 +168,7 @@ ipcMain.on('print-pdf', async (event, payload) => {
     itemsTemplateTmp = itemsTemplateTmp.replace('{{harga}}', payload.payload.items[idx].harga)
     itemsTemplate = itemsTemplate.concat(itemsTemplateTmp)
   }
+  const now = new Date()
 
   template = template.replace('{{logo}}', data.logo)
   template = template.replace('{{schoolName}}', data.schoolName)
@@ -192,7 +193,7 @@ ipcMain.on('print-pdf', async (event, payload) => {
           // fs.unlinkSync(htmlPath)
           dialog.showSaveDialog({
             title: "Select the File Path to save",
-            defaultPath: path.join(app.getPath('documents'), "Contoh pembayaran.pdf"),
+            defaultPath: path.join(app.getPath('documents'), `Struk-${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getTime()}.pdf`),
             // defaultPath: path.join(__dirname, '../assets/'),
             buttonLabel: "Save",
             // Restricting the user to only Text Files.
@@ -240,6 +241,7 @@ ipcMain.on('print-report', async (event, payload) => {
   });
 
   const rawData = fs.readFileSync(`${app.getPath("userData")}/config.json`, { encoding: 'utf8', flag: 'r' })
+  const now = new Date()
 
   const data = JSON.parse(rawData)
   console.log(`${app.getPath("userData")}/config.json`);
@@ -281,7 +283,7 @@ ipcMain.on('print-report', async (event, payload) => {
           // fs.unlinkSync(htmlPath)
           dialog.showSaveDialog({
             title: "Select the File Path to save",
-            defaultPath: path.join(app.getPath('documents'), "Contoh report.pdf"),
+            defaultPath: path.join(app.getPath('documents'), `Laporan-${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getTime()}.pdf`),
             // defaultPath: path.join(__dirname, '../assets/'),
             buttonLabel: "Save",
             // Restricting the user to only Text Files.

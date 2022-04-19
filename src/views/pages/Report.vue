@@ -56,7 +56,7 @@ import * as Types from "@/db/enums/types";
 import { Class } from "@/db/model/class";
 import moment from "moment";
 import { ipcRenderer } from "electron";
-import Datepicker from 'vue3-datepicker'
+import Datepicker from "vue3-datepicker";
 interface DetailObject {
   [key: string]: any;
 }
@@ -80,15 +80,17 @@ export default defineComponent({
   },
   components: {
     PaginationButton,
-    Datepicker
+    Datepicker,
   },
   watch: {
     startDate() {
-      this.find()
+      this.updateFilterBy();
+      this.find();
     },
     endDate() {
-      this.find()
-    }
+      this.updateFilterBy();
+      this.find();
+    },
   },
   methods: {
     updateDateFilter() {
@@ -125,8 +127,12 @@ export default defineComponent({
 
       this.isLoading = true;
 
-      this.paginatedPayload.createdStart = moment(this.startDate.getTime()).startOf('day').format('YYYY-MM-DD HH:mm:ss');
-      this.paginatedPayload.createdEnd = moment(this.endDate.getTime()).endOf('day').format('YYYY-MM-DD HH:mm:ss');
+      this.paginatedPayload.createdStart = moment(this.startDate.getTime())
+        .startOf("day")
+        .format("YYYY-MM-DD HH:mm:ss");
+      this.paginatedPayload.createdEnd = moment(this.endDate.getTime())
+        .endOf("day")
+        .format("YYYY-MM-DD HH:mm:ss");
       this.paginatedPayload.limit = isMax
         ? 10000000
         : this.paginatedPayload.limit;
@@ -152,6 +158,30 @@ export default defineComponent({
     className(classes: Array<Class>) {
       return classes[classes.length - 1].name;
     },
+    updateFilterBy() {
+      const diff = moment(this.endDate.getTime()).diff(
+        moment(this.startDate.getTime()),
+        "days"
+      );
+
+      switch (diff) {
+        case 0:
+          this.filterBy = "harian";
+          break;
+        case 27 || 28 || 29 || 30:
+          this.filterBy = "harian";
+
+          break;
+        case 6:
+          this.filterBy = "mingguan";
+
+          break;
+
+        default:
+          this.filterBy = "custom";
+          break;
+      }
+    },
     async savePdf() {
       const items = [];
       await this.find(true);
@@ -161,7 +191,9 @@ export default defineComponent({
           id: this.details[idx].id,
           jenis: this.details[idx].relations?.payment?.label,
           nama: this.details[idx].relations?.student?.name,
-          kelas: this.className(this.details[idx].relations?.student?.relations?.classes!),
+          kelas: this.className(
+            this.details[idx].relations?.student?.relations?.classes!
+          ),
           bayar: this.details[idx].pay.toLocaleString(),
           deskripsi: this.details[idx].description,
         });
@@ -187,10 +219,14 @@ export default defineComponent({
 
       ipcRenderer.sendSync("print-report", {
         payload: {
-          createdAt: moment().format('MMMM Do YYYY, HH:mm:ss'),
-          reportType: this.filterBy,
-          dateStart: moment(this.startDate.getTime()).format('MMMM Do YYYY, HH:mm:ss'),
-          dateEnd: moment(this.endDate.getTime()).format('MMMM Do YYYY, HH:mm:ss'),
+          createdAt: moment().format("MMMM Do YYYY, HH:mm:ss"),
+          reportType: this.filterBy.toUpperCase(),
+          dateStart: moment(this.startDate.getTime()).format(
+            "MMMM Do YYYY, HH:mm:ss"
+          ),
+          dateEnd: moment(this.endDate.getTime()).format(
+            "MMMM Do YYYY, HH:mm:ss"
+          ),
           items: items,
         },
       });
