@@ -264,7 +264,7 @@ export default defineComponent({
       )!;
 
       const isHasPpdb =
-         this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
+        this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
 
       if (this.showSpp && isHasPpdb) {
         const paymentSpp = this.group.find(
@@ -276,7 +276,7 @@ export default defineComponent({
           totalPrice = Number(this.forms[idx].pay) + totalPrice;
         }
 
-        const totalSpp =
+        const totalSpp = this.student.is_orphan ? 0 :
           this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
           paymentSpp.price!;
 
@@ -334,7 +334,7 @@ export default defineComponent({
         index++
       ) {
         this.forms.push({
-          pay: payment.price!,
+          pay: this.student.is_orphan ? 0 : payment.price!,
           description:
             this.months[this.selectedSemester][this.monthFrom + index],
           studentId: this.student.id,
@@ -434,9 +434,9 @@ export default defineComponent({
         }
       }
 
-      // for (const idx in this.forms) {
-      //   await create(this.forms[idx]);
-      // }
+      for (const idx in this.forms) {
+        await create(this.forms[idx]);
+      }
 
       createToast("Pembayaran Berhasil", {
         hideProgressBar: true,
@@ -474,7 +474,10 @@ export default defineComponent({
         const payment = this.group.find(
           (i) => i.id === this.forms[idx].paymentId
         )!;
-        const label = payment.label;
+        const label =
+          payment.key == "spp"
+            ? `${payment.label} ${this.forms[idx].description}`
+            : payment.label;
         const price = payment.price!;
 
         items.push({
@@ -485,7 +488,7 @@ export default defineComponent({
 
       ipcRenderer.sendSync("print-pdf", {
         payload: {
-          tanggalDibuat: moment().format('MMMM Do YYYY, HH:mm:ss'),
+          tanggalDibuat: moment().format("MMMM Do YYYY, HH:mm:ss"),
           nama: this.student.name,
           kelas: academicYear.className,
           total: this.total.toLocaleString(),

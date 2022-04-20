@@ -15,7 +15,7 @@
               <template v-if="editMode">
                 <input type="text" class="bg-gray-100 border border-gray-300 p-2 h-9 w-full rounded-lg hover:outline-none  mb-1 focus-within:outline-none focus:outline-none input" v-model="student.name"  placeholder="Nama siswa">
               </template>
-              <label v-else class="block mb-1">: {{student.name}} <span v-if="student.is_orphan" class="text-red-600">*</span></label>
+              <label v-else class="block mb-1">: {{student.name}} <span v-if="student.isOrphan" class="text-red-600">*</span></label>
             </div>
             <div class="w-1/3">
               <label class="block mb-1">Jenis Kelamin</label>
