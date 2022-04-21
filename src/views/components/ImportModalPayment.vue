@@ -79,14 +79,15 @@ export default defineComponent({
           const result = XLSX.utils.sheet_to_json(sheet) as any;
 
           for (const i in result) {
-            const isPaymentExist = await findByName(result[i].key)
+            const isPaymentExist = await findByName(result[i].key);
+
+            console.log(isPaymentExist);
 
             if (isPaymentExist) {
-              const payment = isPaymentExist
-              payment.isActive = false
-              await update(payment)
+              const payment = isPaymentExist;
+              payment.isActive = false;
+              await update(payment);
             }
-            
             const newPayment = {
               price: result[i].harga,
               label: result[i].nama,

@@ -35,9 +35,21 @@ const findById = async (id: number) => {
   return payment
 }
 
-const findAll = async () => {
+const findAll = async (includeInactive = true) => {
   const items = await Payment.findAll()
-  return items
+  let tmp: Payment[] = []
+  if (!includeInactive) {
+    for (const index in items) {
+      const item = items[index]
+      if (item.isActive) {
+        tmp.push(item)
+      }
+    }
+  } else {
+    tmp = items
+  }
+
+  return tmp
 }
 
 /**
@@ -66,7 +78,7 @@ const create = async (paymeny: NewPayment) => {
   if (!paymeny.createdAt) {
     paymeny.createdAt = new Date
   }
-  
+
   const retData = await Payment.create(paymeny)
 
   return retData.id

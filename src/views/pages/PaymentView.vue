@@ -259,45 +259,76 @@ export default defineComponent({
   },
   computed: {
     buttonDisable(): boolean {
-      const paymentPpdb = this.group.find(
-        (i) => i.key == "ppdb" && i.isActive
-      )!;
+      // const paymentPpdb = this.group.find(
+      //   (i) => i.key == "ppdb" && i.isActive
+      // )!;
 
-      const isHasPpdb =
-        this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
+      // const isHasPpdb =
+      //   this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
 
-      if (this.showSpp && isHasPpdb) {
-        const paymentSpp = this.group.find(
-          (i) => i.key == "spp" && i.isActive
-        )!;
+      // if (this.showSpp && isHasPpdb) {
+      //   const paymentSpp = this.group.find(
+      //     (i) => i.key == "spp" && i.isActive
+      //   )!;
 
-        let totalPrice = 0;
-        for (const idx in this.forms) {
-          totalPrice = Number(this.forms[idx].pay) + totalPrice;
-        }
+      //   let totalPrice = 0;
+      //   for (const idx in this.forms) {
+      //     totalPrice = Number(this.forms[idx].pay) + totalPrice;
+      //   }
 
-        const totalSpp = this.student.is_orphan ? 0 :
-          this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
-          paymentSpp.price!;
+      //   const totalSpp = this.student.is_orphan
+      //     ? 0
+      //     : this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
+      //       paymentSpp.price!;
 
-        return (
-          this.forms.length === 0 ||
-          Object.keys(this.student).length === 0 ||
-          this.academicYearId === 0 ||
-          Number(this.pay) < totalSpp ||
-          Number(this.pay) > totalPrice
-        );
-      } else {
-        return (
-          this.forms.length === 0 ||
-          Object.keys(this.student).length === 0 ||
-          this.academicYearId === 0
-        );
+      //   return (
+      //     this.forms.length === 0 ||
+      //     Object.keys(this.student).length === 0 ||
+      //     this.academicYearId === 0 ||
+      //     Number(this.pay) < totalSpp ||
+      //     Number(this.pay) > totalPrice
+      //   );
+      // } else {
+      //   return (
+      //     this.forms.length === 0 ||
+      //     Object.keys(this.student).length === 0 ||
+      //     this.academicYearId === 0
+      //   );
+      // }
+      const paymentSpp = this.group.find((i) => i.key == "spp" && i.isActive)!;
+      let totalPrice = 0;
+      let totalSpp = 0;
+
+      for (const idx in this.forms) {
+        totalPrice = Number(this.forms[idx].pay) + totalPrice;
       }
+
+      if (paymentSpp) {
+        totalSpp = this.student.is_orphan
+          ? 0
+          : this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
+            paymentSpp.price!;
+
+      console.log(this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
+            paymentSpp.price!);
+
+      }
+
+      console.log(this.group);
+      
+
+      return (
+        this.forms.length === 0 ||
+        Object.keys(this.student).length === 0 ||
+        this.academicYearId === 0 ||
+        Number(this.pay) < totalSpp ||
+        Number(this.pay) > totalPrice
+      );
     },
     isCanInstallment(): boolean {
-      const paymentSpp = this.group.find((i) => i.key == "spp" && i.isActive)!;
-      return this.forms.filter((i) => i.paymentId != paymentSpp.id).length < 2;
+      // const paymentSpp = this.group.find((i) => i.key == "spp" && i.isActive)!;
+      // return this.forms.filter((i) => i.paymentId != paymentSpp.id).length < 2;
+      return true;
     },
     studentsWithClass(): { id: number; name: string }[] {
       const students = [];
@@ -406,13 +437,31 @@ export default defineComponent({
       this.isSubmitLoading = true;
       let totalPay = 0;
 
-      const payment = this.group.find((i) => i.key == "ppdb")!;
-      const formsWithOutInstallment = this.forms.filter(
-        (i) => i.paymentId != payment.id
-      );
-      const formsWithInstallment = this.forms.find(
-        (i) => i.paymentId == payment.id
-      );
+      const payments = this.group.filter(
+        (i) => i.key == "ppdb" || i.key == "lks"|| i.key == "uam" || i.key == "um"
+      )!;
+      const formsWithOutInstallment = this.forms.filter((i) => {
+        let isFound = false;
+        for (const index in payments) {
+          const payment = payments[index];
+          isFound = i.paymentId == payment.id;
+
+          if (isFound) {
+            break;
+          }
+        }
+        if (!isFound) {
+          return true;
+        }
+      });
+      const formsWithInstallments = this.forms.filter((i) => {
+        for (const index in payments) {
+          const payment = payments[index];
+          if (i.paymentId == payment.id) {
+            return payment;
+          }
+        }
+      });
 
       this.forms = [];
 
@@ -426,13 +475,18 @@ export default defineComponent({
       this.forms.push(...formsWithOutInstallment);
 
       if (this.pay && Number(this.pay) > totalPay) {
-        if (formsWithInstallment) {
-          formsWithInstallment.isInstalment == Number(this.pay) < totalPay;
-          formsWithInstallment.pay = Number(this.pay) - totalPay;
+        if (formsWithInstallments.length > 0) {
+          for (const i in formsWithInstallments) {
+            const formsWithInstallment = formsWithInstallments[i];
 
-          this.forms.push(formsWithInstallment);
+            formsWithInstallment.isInstalment == Number(this.pay) < totalPay;
+            formsWithInstallment.pay = Number(this.pay) - totalPay;
+
+            this.forms.push(formsWithInstallment);
+          }
         }
       }
+
 
       for (const idx in this.forms) {
         await create(this.forms[idx]);
@@ -478,20 +532,23 @@ export default defineComponent({
           payment.key == "spp"
             ? `${payment.label} ${this.forms[idx].description}`
             : payment.label;
-        const price = payment.price!;
+        const price = this.forms[idx].pay;
 
         items.push({
           jenis: label,
           harga: price.toLocaleString(),
         });
       }
+console.log(this.total);
 
       ipcRenderer.sendSync("print-pdf", {
         payload: {
           tanggalDibuat: moment().format("MMMM Do YYYY, HH:mm:ss"),
           nama: this.student.name,
           kelas: academicYear.className,
-          total: this.total.toLocaleString(),
+          total: this.pay
+            ? Number(this.pay).toLocaleString()
+            : this.total.toLocaleString(),
           tahun: academicYear.label,
           items: items,
         },
@@ -552,7 +609,7 @@ export default defineComponent({
       return this.group[idx].label;
     },
     async fetchPayment() {
-      this.group = await findAll();
+      this.group = await findAll(false);
     },
     filterGroup() {
       const filteredGroup: Array<any> = [];

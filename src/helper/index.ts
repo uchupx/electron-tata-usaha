@@ -13,10 +13,10 @@ const paymentWithClasses = [
   { classGrade: "8-", payments: ["du", "spp", "pas", "pat", "lks", "pph1", "pph2"] },
   {
     classGrade: "9-",
-    payments: ["du", "spp", "pas", "pat", "uam", "lks", "pph1", "pph2"],
+    payments: ["du", "spp", "pas", "pat", "uam", "um", "lks", "pph1", "pph2"],
   },
 ];
-const paymentKeys = ["ppdb", "spp", "pas", "pat", "lks", "pph1", "pph2", "du", "uam"]
+const paymentKeys = ["ppdb", "spp", "pas", "pat", "lks", "pph1", "pph2", "du", "um", "uam"]
 const monthsBySemester = [
   ["Juli", "Augustus", "September", "Oktober", "November", "Desember"],
   ["Januari", "Februari", "Maret", "April", "Mei", "Juni"],
