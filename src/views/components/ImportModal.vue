@@ -40,6 +40,7 @@ import { UploadIcon, CheckCircleIcon } from "@heroicons/vue/outline";
 
 import {
   findByNameAndClassId,
+  findByName,
   create,
   update,
   findById,
@@ -52,7 +53,7 @@ import {
 import {
   create as studentClassCreate,
   isExist as isDataExist,
-  findByStudentId as findStudentClassByStudentId,
+  findByModelStudentId as findStudentClassByStudentId,
   update as studentClassUpdate,
 } from "@/db/action/student_class";
 
@@ -127,14 +128,13 @@ export default defineComponent({
               academicYearId = newAcademicYearId!;
             }
 
-            const studentIsExist = await findByNameAndClassId(
-              items[i].nama,
-              classId
+            const studentIsExist = await findByName(
+              items[i].nama
             );
 
             if (studentIsExist) {
               let isHaveChange = false;
-              const student = await findById(studentIsExist.id);
+              const student = await findById(studentIsExist.id!);
               console.log(student);
 
               if (items[i].nama && student!.name !== items[i].nama) {
@@ -147,15 +147,24 @@ export default defineComponent({
                 student!.address = items[i].alamat;
                 isHaveChange = true;
               }
-              if (items[i].semester && student!.semester !== items[i].semester) {
+              if (
+                items[i].semester &&
+                student!.semester !== items[i].semester
+              ) {
                 student!.semester = items[i].semester;
                 isHaveChange = true;
               }
-              if (items[i].jenis_kelamin && student!.gender !== items[i].jenis_kelamin) {
+              if (
+                items[i].jenis_kelamin &&
+                student!.gender !== items[i].jenis_kelamin
+              ) {
                 student!.gender = items[i].jenis_kelamin;
                 isHaveChange = true;
               }
-              if (items[i].yatim_piatu && student!.isOrphan !== items[i].yatim_piatu) {
+              if (
+                items[i].yatim_piatu &&
+                student!.isOrphan !== items[i].yatim_piatu
+              ) {
                 student!.isOrphan = items[i].yatim_piatu;
                 isHaveChange = true;
               }
@@ -177,7 +186,6 @@ export default defineComponent({
               });
 
               studentId = newStudentId!;
-              count++;
             }
 
             const isExist = await isDataExist(
@@ -185,6 +193,7 @@ export default defineComponent({
               academicYearId,
               studentId
             );
+
             if (!isExist) {
               const studentClasses = await findStudentClassByStudentId(
                 studentId
@@ -195,6 +204,7 @@ export default defineComponent({
                 studentClass.isActive = false;
                 await studentClassUpdate(studentClass);
               }
+
               await studentClassCreate({
                 classId: classId,
                 academicYearId: academicYearId,
@@ -203,7 +213,7 @@ export default defineComponent({
               });
             }
 
-            console.log("Bwah");
+            count++;
           }
           resolve(true);
         };

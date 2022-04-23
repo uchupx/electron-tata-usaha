@@ -62,6 +62,7 @@ const findByNameAndClassIdQuery = `
         AND student_class.class_id ={classId}
     ORDER BY student_class.created_at ASC`
 
+
 export interface NewStudent {
     name: string | null;
     address: string | null;
@@ -117,6 +118,16 @@ const findByNameAndClassId = async (name: string, classId: number) => {
 
     await sequelize.query(findQuery).then((res: any) => {
         result = res[0][0]
+    })
+
+    return result
+}
+
+const findByName = async (name: string) => {
+    const result = await Student.findOne({
+        where: {
+            Name: name
+        }
     })
 
     return result
@@ -231,4 +242,4 @@ const isExist = async (name: string) => {
     return result?.id
 }
 
-export { getAll, create, findPaginated, findById, findByIds, countStudents, update, findByNameAndClassId, findAll, isExist }
+export { getAll, create, findPaginated, findById, findByIds, countStudents, update, findByNameAndClassId, findAll, isExist, findByName }

@@ -259,42 +259,6 @@ export default defineComponent({
   },
   computed: {
     buttonDisable(): boolean {
-      // const paymentPpdb = this.group.find(
-      //   (i) => i.key == "ppdb" && i.isActive
-      // )!;
-
-      // const isHasPpdb =
-      //   this.forms.findIndex((i) => i.paymentId == paymentPpdb.id) > -1;
-
-      // if (this.showSpp && isHasPpdb) {
-      //   const paymentSpp = this.group.find(
-      //     (i) => i.key == "spp" && i.isActive
-      //   )!;
-
-      //   let totalPrice = 0;
-      //   for (const idx in this.forms) {
-      //     totalPrice = Number(this.forms[idx].pay) + totalPrice;
-      //   }
-
-      //   const totalSpp = this.student.is_orphan
-      //     ? 0
-      //     : this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
-      //       paymentSpp.price!;
-
-      //   return (
-      //     this.forms.length === 0 ||
-      //     Object.keys(this.student).length === 0 ||
-      //     this.academicYearId === 0 ||
-      //     Number(this.pay) < totalSpp ||
-      //     Number(this.pay) > totalPrice
-      //   );
-      // } else {
-      //   return (
-      //     this.forms.length === 0 ||
-      //     Object.keys(this.student).length === 0 ||
-      //     this.academicYearId === 0
-      //   );
-      // }
       const paymentSpp = this.group.find((i) => i.key == "spp" && i.isActive)!;
       let totalPrice = 0;
       let totalSpp = 0;
@@ -308,14 +272,7 @@ export default defineComponent({
           ? 0
           : this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
             paymentSpp.price!;
-
-      console.log(this.forms.filter((i) => i.paymentId == paymentSpp.id).length *
-            paymentSpp.price!);
-
       }
-
-      console.log(this.group);
-      
 
       return (
         this.forms.length === 0 ||
@@ -438,7 +395,8 @@ export default defineComponent({
       let totalPay = 0;
 
       const payments = this.group.filter(
-        (i) => i.key == "ppdb" || i.key == "lks"|| i.key == "uam" || i.key == "um"
+        (i) =>
+          i.key == "ppdb" || i.key == "lks" || i.key == "uam" || i.key == "um"
       )!;
       const formsWithOutInstallment = this.forms.filter((i) => {
         let isFound = false;
@@ -486,7 +444,6 @@ export default defineComponent({
           }
         }
       }
-
 
       for (const idx in this.forms) {
         await create(this.forms[idx]);
@@ -539,7 +496,7 @@ export default defineComponent({
           harga: price.toLocaleString(),
         });
       }
-console.log(this.total);
+      console.log(this.total);
 
       ipcRenderer.sendSync("print-pdf", {
         payload: {
