@@ -5,6 +5,7 @@ import { Payment, PaymentDetail } from '@/db/model/payment'
 import { Activity } from '@/db/model/activity'
 import { Class, StudentClass, AcademicYear } from '@/db/model/class'
 import { DataTypes, Sequelize } from 'sequelize';
+import { User } from "./db/model/user";
 declare const __static: string;
 
 // todo try loading db from userData
@@ -167,7 +168,18 @@ AcademicYear.init({
 }, { tableName: 'academic_years', sequelize })
 AcademicYear.sync()
 
+User.init({
+    nama: {
+        type: DataTypes.STRING, allowNull: true
+    },
+    username: {
+        type: DataTypes.STRING, allowNull: true
+    },
+    password: {
+        type: DataTypes.STRING, allowNull: true
+    },
+}, {tableName: 'users', sequelize})
+User.sync()
 
 
-
-export { sequelize, Student, Payment, PaymentDetail, Activity, Class, StudentClass, AcademicYear };
+export { sequelize, Student, Payment, PaymentDetail, Activity, Class, StudentClass, AcademicYear, User };

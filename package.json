@@ -27,6 +27,7 @@
     "sequelize": "^6.3.5",
     "sqlite3": "^5.0.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
+    "ts-md5": "^1.2.11",
     "vue": "^3.0.0-0",
     "vue-html2pdf": "^1.8.0",
     "vue-router": "^4.0.0-0",

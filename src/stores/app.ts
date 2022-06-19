@@ -12,6 +12,8 @@ export default {
     schoolName: '',
     hostBackup: '',
     autoBackup: false,
+    shouldLogin: false,
+    logginedUser: null,
     backupEvery: 'transaction',
     items: [],
     isModalOpen: false,
@@ -56,6 +58,9 @@ export default {
     setHost(state: any, value: string) {
       state.hostBackup = value
     },
+    setLoggineduser(state: any, value: any) {
+      state.logginedUser = value
+    },
     
     initializeState(state: any, payload: any) {
       state.logo = payload.logo
@@ -63,6 +68,7 @@ export default {
       state.autoBackup = payload.autoBackup
       state.backupEvery = payload.backupEvery
       state.hostBackup = payload.hostBackup
+      state.shouldLogin = payload.shouldLogin
     }
   },
 
