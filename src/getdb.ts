@@ -6,6 +6,7 @@ import { Activity } from '@/db/model/activity'
 import { Class, StudentClass, AcademicYear } from '@/db/model/class'
 import { DataTypes, Sequelize } from 'sequelize';
 import { User } from "./db/model/user";
+import { Md5 } from "ts-md5/dist/md5";
 declare const __static: string;
 
 // todo try loading db from userData
@@ -173,13 +174,19 @@ User.init({
         type: DataTypes.STRING, allowNull: true
     },
     username: {
-        type: DataTypes.STRING, allowNull: true
+        type: DataTypes.STRING, allowNull: true, unique: true,
     },
     password: {
         type: DataTypes.STRING, allowNull: true
     },
 }, {tableName: 'users', sequelize})
 User.sync()
+
+User.create({
+    name: "Admin Tatausaha",
+    username: "admin",
+    password: Md5.hashStr("admin123")
+})
 
 
 export { sequelize, Student, Payment, PaymentDetail, Activity, Class, StudentClass, AcademicYear, User };

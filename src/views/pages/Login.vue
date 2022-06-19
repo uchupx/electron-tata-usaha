@@ -70,11 +70,10 @@ export default defineComponent({
 
       const user = await findUserByUsernamePassword(
         this.form.username,
-        Md5.hashStr(this.form.password)
+        Md5.hashStr(this.form.password) // lakukan hashing
       );
       if (user) {
         this.setLoggineduser(user);
-        console.log("berhasil login");
         createToast("Berhasil Login", {
           hideProgressBar: true,
           type: "success",
