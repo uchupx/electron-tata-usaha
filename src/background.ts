@@ -79,8 +79,8 @@ app.on('ready', async () => {
     autoBackup: false,
     backupEvery: 'transaction',
     hostBackup: 'http://localhost:3000',
-    // shouldLogin: false,
-    shouldLogin: true, // change value to true, to force login on everytime open the app
+    shouldLogin: false, // change value to true, to force login on everytime open the app
+    // shouldLogin: true, // change value to true, to force login on everytime open the app
   }
 
   if (!fs.existsSync(`${app.getPath("userData")}/config.json`)) {
